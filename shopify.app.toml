@@ -16,9 +16,9 @@ scopes = "read_products,write_products"
 
 [auth]
 redirect_urls = [
-  "https://antarctica-benjamin-director-flying.trycloudflare.com/auth/callback",
-  "https://antarctica-benjamin-director-flying.trycloudflare.com/auth/shopify/callback",
-  "https://antarctica-benjamin-director-flying.trycloudflare.com/api/auth/callback"
+  "https://https://carouselslider-sandy.vercel.app/auth/callback",
+  "https://https://carouselslider-sandy.vercel.app/auth/shopify/callback",
+  "https://https://carouselslider-sandy.vercel.app/api/auth/callback"
 ]
 
 [webhooks]
