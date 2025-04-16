@@ -10,11 +10,26 @@ if (
   delete process.env.HOST;
 }
 
+// /** @type {import('@remix-run/dev').AppConfig} */
+// module.exports = {
+//   ignoredRouteFiles: ["**/.*"],
+//   appDirectory: "app",
+//   serverModuleFormat: "cjs",
+//   dev: { port: process.env.HMR_SERVER_PORT || 8002 },
+//   future: {},
+// };
+
+
 /** @type {import('@remix-run/dev').AppConfig} */
 module.exports = {
-  ignoredRouteFiles: ["**/.*"],
-  appDirectory: "app",
-  serverModuleFormat: "cjs",
-  dev: { port: process.env.HMR_SERVER_PORT || 8002 },
-  future: {},
+  future: {
+    v2_routeConvention: true
+  },
+  serverBuildTarget: 'vercel',
+  ignoredRouteFiles: ['**/.*'],
+  // For a static build
+  appDirectory: 'app',
+  publicPath: '/build/',
+  assetsBuildDirectory: 'public/build',
+  server: undefined, // use Vercel serverless
 };
