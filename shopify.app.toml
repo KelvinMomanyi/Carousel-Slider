@@ -3,7 +3,7 @@
 client_id = "e3c6df0e7669a438f16b27083aa321d0"
 name = "Carousel Slider"
 handle = "slide-extension"
-application_url = "https://antarctica-benjamin-director-flying.trycloudflare.com"
+application_url = "https://carouselslider-sandy.vercel.app/"
 embedded = true
 
 [build]
