@@ -16,9 +16,9 @@ scopes = "read_products,write_products"
 
 [auth]
 redirect_urls = [
-  "https://https://carouselslider-sandy.vercel.app/auth/callback",
-  "https://https://carouselslider-sandy.vercel.app/auth/shopify/callback",
-  "https://https://carouselslider-sandy.vercel.app/api/auth/callback"
+  "https://carouselslider-sandy.vercel.app/auth/callback",
+  "https://carouselslider-sandy.vercel.app/auth/shopify/callback",
+  "https://carouselslider-sandy.vercel.app/api/auth/callback"
 ]
 
 [webhooks]
