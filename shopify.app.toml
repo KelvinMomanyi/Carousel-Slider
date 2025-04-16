@@ -1,5 +1,9 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
+
+
+
+
 client_id = "e3c6df0e7669a438f16b27083aa321d0"
 name = "Carousel Slider"
 handle = "slide-extension"
@@ -27,6 +31,15 @@ api_version = "2025-04"
   [[webhooks.subscriptions]]
   uri = "/webhooks/app/privacy"
   compliance_topics = [ "customers/data_request", "customers/redact", "shop/redact" ]
+
+
+
+[[extensions]]
+  type = "theme_app_extension"
+  name = "Slide Theme App Extension"
+  handle = "slide-extension"
+
+
 
 [pos]
 embedded = false
