@@ -19,9 +19,9 @@ export default function App() {
   return (
     <div className={styles.index}>
       <div className={styles.content}>
-        <h1 className={styles.heading}>A short heading about [your app]</h1>
+        <h1 className={styles.heading}>Carousel-Slider</h1>
         <p className={styles.text}>
-          A tagline about [your app] that describes your value proposition.
+         Showcase your best sellers in style — swipe, shop, and impress.
         </p>
         {showForm && (
           <Form className={styles.form} method="post" action="/auth/login">
@@ -36,18 +36,21 @@ export default function App() {
           </Form>
         )}
         <ul className={styles.list}>
-          <li>
-            <strong>Product feature</strong>. Some detail about your feature and
-            its benefit to your customer.
-          </li>
-          <li>
-            <strong>Product feature</strong>. Some detail about your feature and
-            its benefit to your customer.
-          </li>
-          <li>
-            <strong>Product feature</strong>. Some detail about your feature and
-            its benefit to your customer.
-          </li>
+        <li>
+          <strong>One-click Add to Cart</strong>. Makes shopping seamless and fast, improving the user experience and boosting conversions.
+        </li>
+        <li>
+          <strong>Interactive Product Slider</strong>. Showcase your products in a stylish, swipeable carousel that keeps customers engaged.
+        </li>
+        <li>
+          <strong>Responsive Design</strong>. Looks great on any device — mobile, tablet, or desktop — for a consistent shopping experience.
+        </li>
+        <li>
+          <strong>High-Impact Visuals</strong>. Present your products with large images and smooth transitions to capture attention instantly.
+        </li>
+        <li>
+          <strong>Built for Speed</strong>. Optimized performance ensures quick loading and smooth navigation, keeping bounce rates low.
+        </li>
         </ul>
       </div>
     </div>
