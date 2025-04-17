@@ -43,13 +43,7 @@ export default function App() {
           <strong>Interactive Product Slider</strong>. Showcase your products in a stylish, swipeable carousel that keeps customers engaged.
         </li>
         <li>
-          <strong>Responsive Design</strong>. Looks great on any device — mobile, tablet, or desktop — for a consistent shopping experience.
-        </li>
-        <li>
           <strong>High-Impact Visuals</strong>. Present your products with large images and smooth transitions to capture attention instantly.
-        </li>
-        <li>
-          <strong>Built for Speed</strong>. Optimized performance ensures quick loading and smooth navigation, keeping bounce rates low.
         </li>
         </ul>
       </div>
