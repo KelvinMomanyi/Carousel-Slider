@@ -1,5 +1,5 @@
 {
-  "include": ["env.d.ts", "**/*.ts", "**/*.tsx", "app/webhooks/index.js", "app/routes/webhooks.app.privacy.jsx", "app/routes/app.subscriptionBtn.jsx", "app/routes/app.support.jsx", "app/routes/app.subscriptionBtn.jsx"],
+  "include": ["env.d.ts", "**/*.ts", "**/*.tsx", "app/webhooks/index.js", "app/routes/webhooks/app/webhooks.app.privacy.jsx", "app/routes/app.subscriptionBtn.jsx", "app/routes/app.support.jsx", "app/routes/app.subscriptionBtn.jsx"],
   "compilerOptions": {
     "lib": ["DOM", "DOM.Iterable", "ES2022"],
     "strict": true,
