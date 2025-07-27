@@ -66,8 +66,8 @@
  </div>
  <!-- navigation buttons -->
  <div class="shv-slider-nav">
-     <button id="prev"><</button>
-     <button id="next">></button>
+     <button id="shv-prev-{{ section.id }}" aria-label="Previous slide"><</button>
+     <button id="shv-next-{{ section.id }}" aria-label="Next slide">></button>
  </div>
  <!-- progress bar -->
  <div class="slider-progress"></div>
@@ -80,14 +80,21 @@
 <style>
 
 .shv-slider-wrapper{
-   height: 100vh;
-   /*margin-top: -50px;*/
+   height: {{ block.settings.slider_height | default: 70 }}vh;
+   max-height: {{ block.settings.max_height | default: 800 }}px;
+   min-height: 400px;
    width: 100%;
    overflow: hidden;
    position: relative;
+   margin: {{ block.settings.top_margin | default: 0 }}px 0 {{ block.settings.bottom_margin | default: 0 }}px 0;
+   /* Ensure it doesn't interfere with other elements */
+   z-index: 1;
 }
+
 .shv-slider-wrapper .shv-slider-track {
    overflow: hidden;
+   height: 100%;
+   width: 100%;
 }
 
 
@@ -156,10 +163,11 @@
    bottom: 50px;
    left: 50%;
    width: max-content;
-   z-index: 100;
+   z-index: 10; /* Reduced from 100 to prevent conflicts */
    display: flex;
    gap: 20px;
    overflow:hidden;
+   transform: translateX(-50%);
 }
 .shv-slider-thumbs .shv-slide{
    width: 150px;
@@ -226,7 +234,7 @@ i.ri-shopping-bag-line {
    position: absolute;
    top: 80%;
    right: 52%;
-   z-index: 100;
+   z-index: 10; /* Reduced from 100 to prevent conflicts */
    width: 300px;
    max-width: 30%;
    display: flex;
@@ -243,6 +251,7 @@ i.ri-shopping-bag-line {
    font-family: monospace;
    font-weight: bold;
    transition: .5s;
+   cursor: pointer;
 }
 .shv-slider-nav button:hover{
    background-color: #fff;
@@ -279,7 +288,7 @@ i.ri-shopping-bag-line {
 .shv-slider-wrapper .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .shv-slide-title,
 .shv-slider-wrapper .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .topic,
 .shv-slider-wrapper .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .des,
-.shv-slider-wrapper .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .buttons{
+.shv-slider-wrapper .shv-slider-wrapper .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .buttons{
    position: relative;
    padding: 0px 15px;
    display: inline-block; /* Prevents full-width expansion */
@@ -395,7 +404,7 @@ i.ri-shopping-bag-line {
    animation: showThumbnail .5s linear 1 forwards;
 }
 .shv-slider-wrapper.prev .shv-slider-track .shv-slide img{
-   z-index: 100;
+   z-index: 5; /* Reduced from 100 */
 }
 @keyframes showThumbnail{
    from{
@@ -409,7 +418,7 @@ i.ri-shopping-bag-line {
 
 @keyframes effectNext{
    from{
-       transform: translateX(150px);
+       transform: translateX(calc(-50% + 150px));
    }
 }
 
@@ -417,7 +426,7 @@ i.ri-shopping-bag-line {
 
 .shv-slider-wrapper .time{
    position: absolute;
-   z-index: 1000;
+   z-index: 15; /* Reduced from 1000 */
    width: 0%;
    height: 3px;
    background-color: #f1683a;
@@ -482,70 +491,172 @@ i.ri-shopping-bag-line {
        opacity: 0;
    }
 }
-@media screen and (max-width: 678px) {
+
+/* Responsive Design Improvements */
+@media screen and (max-width: 768px) {
+   .shv-slider-wrapper {
+       height: {{ block.settings.mobile_height | default: 50 }}vh;
+       min-height: 300px;
+   }
+   
    .shv-slider-wrapper .shv-slider-track .shv-slide .shv-slide-content{
-       padding-right: 0;
+       padding-right: 10px;
+       max-width: 90%;
+       top: 20%;
    }
+   
    .shv-slider-wrapper .shv-slider-track .shv-slide .shv-slide-content .shv-slide-title{
-       font-size: 30px;
+       font-size: 1.5em;
    }
 
- .hide-on-mobile {
-   display: none;
- }
+   .hide-on-mobile {
+       display: none;
+   }
+   
+   .shv-slider-thumbs {
+       bottom: 20px;
+       gap: 10px;
+   }
+   
+   .shv-slider-thumbs .shv-slide {
+       width: 80px;
+       height: 120px;
+   }
+   
+   .shv-slider-nav {
+       right: 50%;
+       transform: translateX(50%);
+       width: 200px;
+       top: 85%;
+   }
+}
 
+@media screen and (max-width: 480px) {
+   .shv-slider-wrapper {
+       height: {{ block.settings.mobile_height | default: 40 }}vh;
+       min-height: 250px;
+   }
+   
+   .shv-slider-wrapper .shv-slider-track .shv-slide .shv-slide-content .shv-slide-title{
+       font-size: 1.2em;
+   }
+}
+
+/* Fix for theme compatibility */
+.shv-slider-wrapper * {
+   box-sizing: border-box;
+}
+
+/* Ensure the slider doesn't break out of its container */
+.shv-slider-wrapper {
+   contain: layout style paint;
 }
 </style>    
+
 <script>
-   //step 1: get DOM
-let nextDom = document.getElementById('next');
-let prevDom = document.getElementById('prev');
+(function() {
+   // Namespace the script to avoid conflicts
+   const sectionId = '{{ section.id }}';
+   const nextDom = document.getElementById('shv-next-' + sectionId);
+   const prevDom = document.getElementById('shv-prev-' + sectionId);
 
-let carouselDom = document.querySelector('.shv-slider-wrapper');
-let SliderDom = carouselDom.querySelector('.shv-slider-wrapper .shv-slider-track');
-let thumbnailBorderDom = document.querySelector('.shv-slider-wrapper .shv-slider-thumbs');
-let thumbnailItemsDom = thumbnailBorderDom.querySelectorAll('.shv-slide');
-let timeDom = document.querySelector('.shv-slider-wrapper .time');
-
-thumbnailBorderDom.appendChild(thumbnailItemsDom[0]);
-let timeRunning = 3000;
-let timeAutoNext = 7000;
-
-nextDom.onclick = function(){
-   showSlider('next');    
-}
-
-prevDom.onclick = function(){
-   showSlider('prev');    
-}
-let runTimeOut;
-let runNextAuto = setTimeout(() => {
-   next.click();
-}, timeAutoNext)
-function showSlider(type){
-   let  SliderItemsDom = SliderDom.querySelectorAll('.shv-slider-wrapper .shv-slider-track .shv-slide');
-   let thumbnailItemsDom = document.querySelectorAll('.shv-slider-wrapper .shv-slider-thumbs .shv-slide');
-   
-   if(type === 'next'){
-       SliderDom.appendChild(SliderItemsDom[0]);
-       thumbnailBorderDom.appendChild(thumbnailItemsDom[0]);
-       carouselDom.classList.add('next');
-   }else{
-       SliderDom.prepend(SliderItemsDom[SliderItemsDom.length - 1]);
-       thumbnailBorderDom.prepend(thumbnailItemsDom[thumbnailItemsDom.length - 1]);
-       carouselDom.classList.add('prev');
+   if (!nextDom || !prevDom) {
+       console.warn('Carousel navigation buttons not found');
+       return;
    }
-   clearTimeout(runTimeOut);
-   runTimeOut = setTimeout(() => {
-       carouselDom.classList.remove('next');
-       carouselDom.classList.remove('prev');
-   }, timeRunning);
 
-   clearTimeout(runNextAuto);
-   runNextAuto = setTimeout(() => {
-       next.click();
-   }, timeAutoNext)
-}
+   const carouselDom = nextDom.closest('.shv-slider-wrapper');
+   if (!carouselDom) {
+       console.warn('Carousel wrapper not found');
+       return;
+   }
+
+   const SliderDom = carouselDom.querySelector('.shv-slider-track');
+   const thumbnailBorderDom = carouselDom.querySelector('.shv-slider-thumbs');
+   
+   if (!SliderDom || !thumbnailBorderDom) {
+       console.warn('Carousel elements not found');
+       return;
+   }
+
+   const thumbnailItemsDom = thumbnailBorderDom.querySelectorAll('.shv-slide');
+   const timeDom = carouselDom.querySelector('.time');
+
+   if (thumbnailItemsDom.length > 0) {
+       thumbnailBorderDom.appendChild(thumbnailItemsDom[0]);
+   }
+
+   let timeRunning = 3000;
+   let timeAutoNext = 7000;
+   let runTimeOut;
+   let runNextAuto;
+
+   function startAutoSlide() {
+       clearTimeout(runNextAuto);
+       runNextAuto = setTimeout(() => {
+           if (nextDom) {
+               nextDom.click();
+           }
+       }, timeAutoNext);
+   }
+
+   nextDom.onclick = function(){
+       showSlider('next');    
+   }
+
+   prevDom.onclick = function(){
+       showSlider('prev');    
+   }
+
+   // Start auto-slide
+   startAutoSlide();
+
+   function showSlider(type){
+       const SliderItemsDom = SliderDom.querySelectorAll('.shv-slide');
+       const thumbnailItemsDom = thumbnailBorderDom.querySelectorAll('.shv-slide');
+       
+       if (SliderItemsDom.length === 0 || thumbnailItemsDom.length === 0) {
+           return;
+       }
+       
+       if(type === 'next'){
+           SliderDom.appendChild(SliderItemsDom[0]);
+           thumbnailBorderDom.appendChild(thumbnailItemsDom[0]);
+           carouselDom.classList.add('next');
+       } else {
+           SliderDom.prepend(SliderItemsDom[SliderItemsDom.length - 1]);
+           thumbnailBorderDom.prepend(thumbnailItemsDom[thumbnailItemsDom.length - 1]);
+           carouselDom.classList.add('prev');
+       }
+       
+       clearTimeout(runTimeOut);
+       runTimeOut = setTimeout(() => {
+           carouselDom.classList.remove('next');
+           carouselDom.classList.remove('prev');
+       }, timeRunning);
+
+       // Restart auto-slide
+       startAutoSlide();
+   }
+
+   // Pause auto-slide on hover
+   carouselDom.addEventListener('mouseenter', function() {
+       clearTimeout(runNextAuto);
+   });
+
+   carouselDom.addEventListener('mouseleave', function() {
+       startAutoSlide();
+   });
+
+   // Handle visibility change (pause when tab is not active)
+   document.addEventListener('visibilitychange', function() {
+       if (document.hidden) {
+           clearTimeout(runNextAuto);
+       } else {
+           startAutoSlide();
+       }
+   });
+})();
 </script>    
 
 
@@ -557,7 +668,68 @@ function showSlider(type){
        {
          "type": "collection",
          "id": "selected_collection",
-         "label": "Select Collection",
+         "label": "Select Collection"
+       },
+       {
+         "type": "header",
+         "content": "Slider Dimensions"
+       },
+       {
+         "type": "range",
+         "id": "slider_height",
+         "label": "Slider Height (Desktop)",
+         "min": 30,
+         "max": 100,
+         "step": 5,
+         "default": 70,
+         "unit": "vh",
+         "info": "Height as percentage of viewport"
+       },
+       {
+         "type": "range",
+         "id": "mobile_height",
+         "label": "Slider Height (Mobile)",
+         "min": 30,
+         "max": 80,
+         "step": 5,
+         "default": 50,
+         "unit": "vh",
+         "info": "Height as percentage of viewport on mobile"
+       },
+       {
+         "type": "range",
+         "id": "max_height",
+         "label": "Maximum Height",
+         "min": 400,
+         "max": 1200,
+         "step": 50,
+         "default": 800,
+         "unit": "px",
+         "info": "Maximum height in pixels"
+       },
+       {
+         "type": "range",
+         "id": "top_margin",
+         "label": "Top Margin",
+         "min": 0,
+         "max": 100,
+         "step": 5,
+         "default": 0,
+         "unit": "px"
+       },
+       {
+         "type": "range",
+         "id": "bottom_margin",
+         "label": "Bottom Margin",
+         "min": 0,
+         "max": 100,
+         "step": 5,
+         "default": 0,
+         "unit": "px"
+       },
+       {
+         "type": "header",
+         "content": "Product Title Settings"
        },
        {
          "type": "color",
@@ -583,7 +755,10 @@ function showSlider(type){
          "max": 900,
          "step": 100,
          "default": 400
-
+       },
+       {
+         "type": "header",
+         "content": "Price Settings"
        },
        {
            "type": "color",
@@ -594,7 +769,7 @@ function showSlider(type){
          {
          "type": "range",
          "id": "font_size1",
-         "label": "Font Size",
+         "label": "Price Font Size",
          "min": 10,
          "max": 50,
          "step": 1,
@@ -604,16 +779,20 @@ function showSlider(type){
           {
          "type": "range",
          "id": "font_weight1",
-         "label": "Font Weight",
+         "label": "Price Font Weight",
          "min": 100,
          "max": 900,
          "step": 100,
          "default": 400
          },
          {
+           "type": "header",
+           "content": "Shopping Cart Button Settings"
+         },
+         {
            "type": "color",
            "id": "icon_color",
-           "label": "Shopping bag Color",
+           "label": "Shopping Bag Color",
            "default": "#ffffff"
          },
          {
@@ -637,37 +816,37 @@ function showSlider(type){
            {
            "type": "range",
            "id": "addToCart_size",
-           "label": "Add To Cart font Size",
-           "min": 20,
-           "max": 100,
-           "step": 5,
-           "default":20
+           "label": "Add To Cart Font Size",
+           "min": 10,
+           "max": 30,
+           "step": 1,
+           "default": 16
            }, 
            {
            "type": "color",
            "id": "addToCart_color",
-           "label": "Add to Cart Color",
+           "label": "Add to Cart Text Color",
            "default": "#ffffff",
-           "info": "Choose the color of the add to cart word"
+           "info": "Choose the color of the add to cart text"
+           },
+           {
+             "type": "header",
+             "content": "Background Gradient Settings"
            },
            {
            "type": "color",
            "id": "gradient_color_start",
            "label": "Gradient Start Color",
            "default": "#000000",
-           "info": "Choose the start color for the gradient."
+           "info": "Choose the start color for the gradient overlay."
            },
            {
            "type": "color",
            "id": "gradient_color_end",
            "label": "Gradient End Color",
            "default": "#000000",
-           "info": "Choose the end color for the gradient."
+           "info": "Choose the end color for the gradient overlay."
            }
-
      ]
    }
-   {% endschema %}
-   
-
-
+{% endschema %}
