@@ -49,7 +49,7 @@ export default function SupportPage() {
               Need help?
             </Text>
             <Text as="p" color="subdued">
-              We're here to help! Reach out through the form below or send us an email.
+              We're here to help! You can reach out through the form below or send us an email.
             </Text>
           </Card>
         </Layout.Section>
