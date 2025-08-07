@@ -156,7 +156,8 @@
    bottom: 50px;
    left: 50%;
    width: max-content;
-   z-index: 100;
+  /* z-index: 100;*/
+   z-index: 10;
    display: flex;
    gap: 20px;
    overflow:hidden;
@@ -226,7 +227,8 @@ i.ri-shopping-bag-line {
    position: absolute;
    top: 80%;
    right: 52%;
-   z-index: 100;
+   /*z-index: 100;*/
+   z-index: 10;
    width: 300px;
    max-width: 30%;
    display: flex;
@@ -251,7 +253,8 @@ i.ri-shopping-bag-line {
 
 /* animation */
 .shv-slider-wrapper .shv-slider-track .shv-slide:nth-child(1){
-   z-index: 1;
+  /* z-index: 1;*/
+  z-index: 2;
 }
 
 
@@ -288,7 +291,7 @@ i.ri-shopping-bag-line {
    transform: translateY(50px);
    filter: blur(20px);
    opacity: 0;
-   animation: showContent 0.5s 1s linear 1 forwards;
+   animation: showContent 0.5s 1s linear 1 forwards  !important;
    animation-fill-mode: forwards;
    overflow: hidden;
    
