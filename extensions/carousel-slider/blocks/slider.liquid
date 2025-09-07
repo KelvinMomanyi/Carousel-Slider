@@ -1,4 +1,4 @@
-<link  href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css" rel="stylesheet"/>
+{% comment %} <link  href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css" rel="stylesheet"/>
  
  
 {% if block.settings.selected_collection != blank %}
@@ -673,4 +673,659 @@ function showSlider(type){
    {% endschema %}
    
 
+ {% endcomment %}
+<link href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css" rel="stylesheet"/>
 
+{% if block.settings.selected_collection != blank %}
+  {% assign collection = collections[block.settings.selected_collection].products %}
+{% else %}
+  {% assign collection = collections.all.products %}
+{% endif %}
+
+<div class="shv-slider-wrapper" data-shv-slider>
+  <!-- Main slider track -->
+  <div class="shv-slider-track">
+    {% for product in collection %} 
+      <div class="shv-slide">
+        <img src="{{ product.featured_image.src | img_url: 'master' }}" 
+             alt="{{ product.featured_image.alt | escape }}" 
+             class="shv-slider-img" 
+             width="540" 
+             height="720" 
+             loading="lazy">
+        <div class="shv-slide-content">
+          <div class="shv-slide-meta">
+            <a href="{{ product.url }}" 
+               class="shv-product-link"
+               style="color: {{ block.settings.text_color }};
+                      text-decoration: none;
+                      font-size:{{ block.settings.font_size}}px;
+                      font-weight:{{ block.settings.font_weight}}">
+              {{ product.title }}
+            </a>
+          </div>
+          <div class="shv-slide-title">
+            <span class="shv-price-span" 
+                  style="color: {{ block.settings.text_color2 }};
+                         font-size:{{ block.settings.font_size1}}px;
+                         font-weight:{{ block.settings.font_weight1}}">
+              {{ product.price | money }}
+            </span>
+          </div>
+          <div class="shv-buttons">
+            <form action="/cart/add" method="post" enctype="multipart/form-data" class="shv-cart-form" onsubmit="submitAddToCartForm(this); return false;">
+              <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}">
+              <button type="submit" class="shv-add-to-cart-btn" aria-label="add to cart">
+                <svg width="{{ block.settings.icon_size }}" 
+                     height="{{ block.settings.icon_size }}" 
+                     viewBox="0 0 24 24" 
+                     fill="none"
+                     stroke="{{ block.settings.icon_color}}" 
+                     stroke-width="{{ block.settings.icon_thickness}}" 
+                     stroke-linecap="round" 
+                     stroke-linejoin="round"
+                     class="shv-cart-icon">
+                  <path d="M9 11a3 3 0 0 0 6 0" />
+                  <path d="M8 6.5a4 4 0 0 1 8 0" />
+                  <path d="M5 8h14v12a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V8z" />
+                </svg>
+                <span class="shv-cart-text shv-hide-on-mobile" 
+                      style="font-size:{{ block.settings.addToCart_size}}px; 
+                             color:{{ block.settings.addToCart_color}};">
+                  Add to Cart
+                </span>
+              </button>
+            </form> 
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+  <!-- Thumbnail section -->
+  <div class="shv-slider-thumbs">
+    {% for product in collection %}
+      <div class="shv-slide">
+        <img src="{{ product.featured_image.src | img_url : 'large'}}" 
+             alt="{{ product.featured_image.alt | escape }}" 
+             class="shv-thumbnail-img" 
+             width="540" 
+             height="720" 
+             loading="lazy">
+      </div>
+    {% endfor %}
+  </div>
+
+  <!-- Navigation buttons -->
+  <div class="shv-slider-nav">
+    <button class="shv-nav-btn shv-prev-btn" id="shv-prev" aria-label="Previous slide">&lt;</button>
+    <button class="shv-nav-btn shv-next-btn" id="shv-next" aria-label="Next slide">&gt;</button>
+  </div>
+
+  <!-- Progress bar -->
+  <div class="shv-slider-progress"></div>
+</div>
+
+<style>
+/* Container and base styles */
+.shv-slider-wrapper {
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.shv-slider-wrapper * {
+  box-sizing: border-box;
+}
+
+.shv-slider-wrapper .shv-slider-track {
+  overflow: hidden;
+  height: 100%;
+  width: 100%;
+}
+
+.shv-slider-wrapper .shv-slider-track .shv-slide {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.shv-slider-wrapper .shv-slider-track .shv-slide .shv-slider-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Slide content */
+.shv-slider-wrapper .shv-slider-track .shv-slide .shv-slide-content {
+  position: absolute;
+  top: 30%;
+  width: min(1140px, 80%);
+  left: 50%;
+  transform: translateX(-50%);
+  padding-right: 30%;
+  padding-top: 5%;
+  text-shadow: 0 5px 10px rgba(0, 0, 0, 0.27);
+  animation: shv-goDark 3s;
+}
+
+@keyframes shv-goDark {
+  0% { opacity: 0; }
+  80% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+.shv-slider-wrapper .shv-slider-track .shv-slide .shv-slide-meta {
+  font-weight: bold;
+  letter-spacing: 2px;
+  margin-bottom: 10px;
+}
+
+.shv-slider-wrapper .shv-slider-track .shv-slide .shv-slide-title {
+  font-size: 2em;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+.shv-product-link {
+  text-decoration: none !important;
+}
+
+/* Add to cart button */
+.shv-add-to-cart-btn {
+  background: transparent;
+  border: none;
+  padding: 8px 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+}
+
+.shv-add-to-cart-btn:hover {
+  transform: translateY(-2px);
+}
+
+.shv-cart-form {
+  margin: 0;
+  padding: 0;
+}
+
+/* Thumbnails */
+.shv-slider-thumbs {
+  position: absolute;
+  bottom: 50px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  z-index: 10;
+  display: flex;
+  gap: 20px;
+  overflow: hidden;
+}
+
+.shv-slider-thumbs .shv-slide {
+  width: 150px;
+  height: 220px;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.shv-slider-thumbs .shv-slide .shv-thumbnail-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 20px;
+  display: block;
+}
+
+/* Navigation */
+.shv-slider-nav {
+  position: absolute;
+  top: 80%;
+  right: 52%;
+  z-index: 10;
+  width: min(300px, 30%);
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.shv-nav-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: rgba(238, 238, 238, 0.27);
+  border: none;
+  color: #fff;
+  font-family: monospace;
+  font-weight: bold;
+  transition: 0.5s;
+  cursor: pointer;
+}
+
+.shv-nav-btn:hover {
+  background-color: #fff;
+  color: #000;
+}
+
+/* First slide z-index */
+.shv-slider-wrapper .shv-slider-track .shv-slide:nth-child(1) {
+  z-index: 2;
+}
+
+/* Animation for first slide content */
+.shv-slider-wrapper .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.shv-slider-wrapper .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .shv-slide-meta,
+.shv-slider-wrapper .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .shv-slide-title,
+.shv-slider-wrapper .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .shv-buttons {
+  position: relative;
+  padding: 0px 15px;
+  display: inline-block;
+  width: auto;
+  transform: translateY(50px);
+  filter: blur(20px);
+  opacity: 0;
+  animation: shv-showContent 0.5s 1s linear 1 forwards !important;
+  overflow: hidden;
+}
+
+.shv-slider-wrapper .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .shv-slide-meta::before,
+.shv-slider-wrapper .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .shv-slide-title::before,
+.shv-slider-wrapper .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .shv-buttons::before {
+  content: "";
+  position: absolute;
+  clip-path: polygon(10% 0%, 100% 0%, 90% 100%, 0% 100%);
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to right, {{ block.settings.gradient_color_start }}80 100%, {{ block.settings.gradient_color_end }}1A 100%);
+  z-index: -1;
+  animation: shv-bgAnimate 0.8s ease-in-out 0.8s forwards;
+}
+
+@keyframes shv-bgAnimate {
+  to { left: 0; }
+}
+
+@keyframes shv-showContent {
+  to {
+    transform: translateY(0px);
+    filter: blur(0px);
+    opacity: 1;
+  }
+}
+
+/* Animation delays */
+.shv-slider-wrapper .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .shv-slide-title {
+  animation-delay: 1.2s !important;
+}
+
+.shv-slider-wrapper .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .shv-buttons {
+  animation-delay: 1.8s !important;
+}
+
+.shv-slider-wrapper .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .shv-slide-title::before {
+  animation-delay: 1.4s !important;
+}
+
+.shv-slider-wrapper .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .shv-buttons::before {
+  animation-delay: 1.6s !important;
+}
+
+/* Next animation */
+.shv-slider-wrapper.shv-next .shv-slider-track .shv-slide:nth-child(1) .shv-slider-img {
+  width: 150px;
+  height: 220px;
+  position: absolute;
+  bottom: 50px;
+  left: 50%;
+  border-radius: 30px;
+  animation: shv-showImage 0.5s linear 1 forwards;
+}
+
+@keyframes shv-showImage {
+  to {
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 0;
+  }
+}
+
+.shv-slider-wrapper.shv-next .shv-slider-thumbs .shv-slide:nth-last-child(1) {
+  overflow: hidden;
+  animation: shv-showThumbnail 0.5s linear 1 forwards;
+}
+
+@keyframes shv-showThumbnail {
+  from {
+    width: 0;
+    opacity: 0;
+  }
+}
+
+.shv-slider-wrapper.shv-next .shv-slider-thumbs {
+  animation: shv-effectNext 0.5s linear 1 forwards;
+}
+
+@keyframes shv-effectNext {
+  from { transform: translateX(150px); }
+}
+
+/* Progress bar */
+.shv-slider-wrapper .shv-slider-progress {
+  position: absolute;
+  z-index: 1000;
+  width: 0%;
+  height: 3px;
+  background-color: #f1683a;
+  left: 0;
+  top: 0;
+}
+
+.shv-slider-wrapper.shv-next .shv-slider-progress,
+.shv-slider-wrapper.shv-prev .shv-slider-progress {
+  animation: shv-runningTime 3s linear 1 forwards;
+}
+
+@keyframes shv-runningTime {
+  from { width: 100%; }
+  to { width: 0; }
+}
+
+/* Previous animation */
+.shv-slider-wrapper.shv-prev .shv-slider-track .shv-slide:nth-child(2) {
+  z-index: 2;
+}
+
+.shv-slider-wrapper.shv-prev .shv-slider-track .shv-slide:nth-child(2) .shv-slider-img {
+  animation: shv-outFrame 0.5s linear 1 forwards;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+}
+
+@keyframes shv-outFrame {
+  to {
+    width: 150px;
+    height: 220px;
+    bottom: 50px;
+    left: 50%;
+    border-radius: 20px;
+  }
+}
+
+.shv-slider-wrapper.shv-prev .shv-slider-thumbs .shv-slide:nth-child(1) {
+  overflow: hidden;
+  opacity: 0;
+  animation: shv-showThumbnail 0.5s linear 1 forwards;
+}
+
+.shv-slider-wrapper.shv-next .shv-nav-btn,
+.shv-slider-wrapper.shv-prev .shv-nav-btn {
+  pointer-events: none;
+}
+
+.shv-slider-wrapper.shv-prev .shv-slider-track .shv-slide:nth-child(2) .shv-slide-content .shv-slide-meta,
+.shv-slider-wrapper.shv-prev .shv-slider-track .shv-slide:nth-child(2) .shv-slide-content .shv-slide-title,
+.shv-slider-wrapper.shv-prev .shv-slider-track .shv-slide:nth-child(2) .shv-slide-content .shv-buttons {
+  animation: shv-contentOut 1.5s linear 1 forwards !important;
+}
+
+@keyframes shv-contentOut {
+  to {
+    transform: translateY(-150px);
+    filter: blur(20px);
+    opacity: 0;
+  }
+}
+
+/* Mobile responsive */
+@media screen and (max-width: 678px) {
+  .shv-slider-wrapper .shv-slider-track .shv-slide .shv-slide-content {
+    padding-right: 0;
+    width: 90%;
+  }
+  
+  .shv-slider-wrapper .shv-slider-track .shv-slide .shv-slide-title {
+    font-size: 30px;
+  }
+  
+  .shv-hide-on-mobile {
+    display: none;
+  }
+  
+  .shv-slider-thumbs {
+    bottom: 20px;
+    gap: 10px;
+  }
+  
+  .shv-slider-thumbs .shv-slide {
+    width: 100px;
+    height: 150px;
+  }
+  
+  .shv-slider-nav {
+    width: 40%;
+    right: 50%;
+  }
+}
+</style>
+
+<script>
+(function() {
+  // Namespace all variables and functions to avoid conflicts
+  const SHV_SLIDER = {
+    nextDom: null,
+    prevDom: null,
+    carouselDom: null,
+    SliderDom: null,
+    thumbnailBorderDom: null,
+    timeRunning: 3000,
+    timeAutoNext: 7000,
+    runTimeOut: null,
+    runNextAuto: null,
+    
+    init: function() {
+      // Get DOM elements with specific IDs
+      this.nextDom = document.getElementById('shv-next');
+      this.prevDom = document.getElementById('shv-prev');
+      this.carouselDom = document.querySelector('[data-shv-slider]');
+      
+      if (!this.carouselDom) return; // Exit if slider not found
+      
+      this.SliderDom = this.carouselDom.querySelector('.shv-slider-track');
+      this.thumbnailBorderDom = this.carouselDom.querySelector('.shv-slider-thumbs');
+      
+      if (!this.SliderDom || !this.thumbnailBorderDom) return;
+      
+      // Initialize thumbnail
+      const thumbnailItems = this.thumbnailBorderDom.querySelectorAll('.shv-slide');
+      if (thumbnailItems.length > 0) {
+        this.thumbnailBorderDom.appendChild(thumbnailItems[0]);
+      }
+      
+      // Bind events
+      if (this.nextDom) {
+        this.nextDom.onclick = () => this.showSlider('next');
+      }
+      
+      if (this.prevDom) {
+        this.prevDom.onclick = () => this.showSlider('prev');
+      }
+      
+      // Auto-advance
+      this.runNextAuto = setTimeout(() => {
+        if (this.nextDom) this.nextDom.click();
+      }, this.timeAutoNext);
+    },
+    
+    showSlider: function(type) {
+      const SliderItemsDom = this.SliderDom.querySelectorAll('.shv-slide');
+      const thumbnailItemsDom = this.thumbnailBorderDom.querySelectorAll('.shv-slide');
+      
+      if (type === 'next') {
+        this.SliderDom.appendChild(SliderItemsDom[0]);
+        this.thumbnailBorderDom.appendChild(thumbnailItemsDom[0]);
+        this.carouselDom.classList.add('shv-next');
+      } else {
+        this.SliderDom.prepend(SliderItemsDom[SliderItemsDom.length - 1]);
+        this.thumbnailBorderDom.prepend(thumbnailItemsDom[thumbnailItemsDom.length - 1]);
+        this.carouselDom.classList.add('shv-prev');
+      }
+      
+      clearTimeout(this.runTimeOut);
+      this.runTimeOut = setTimeout(() => {
+        this.carouselDom.classList.remove('shv-next');
+        this.carouselDom.classList.remove('shv-prev');
+      }, this.timeRunning);
+      
+      clearTimeout(this.runNextAuto);
+      this.runNextAuto = setTimeout(() => {
+        if (this.nextDom) this.nextDom.click();
+      }, this.timeAutoNext);
+    }
+  };
+  
+  // Initialize when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => SHV_SLIDER.init());
+  } else {
+    SHV_SLIDER.init();
+  }
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Carousel Slider",
+  "target": "section",
+  "settings": [
+    {
+      "type": "collection",
+      "id": "selected_collection",
+      "label": "Select Collection"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text Color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "range",
+      "id": "font_size",
+      "label": "Font Size",
+      "min": 10,
+      "max": 50,
+      "step": 1,
+      "default": 20,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "font_weight",
+      "label": "Font Weight",
+      "min": 100,
+      "max": 900,
+      "step": 100,
+      "default": 400
+    },
+    {
+      "type": "color",
+      "id": "text_color2",
+      "label": "Price Text Color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "range",
+      "id": "font_size1",
+      "label": "Price Font Size",
+      "min": 10,
+      "max": 50,
+      "step": 1,
+      "default": 20,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "font_weight1",
+      "label": "Price Font Weight",
+      "min": 100,
+      "max": 900,
+      "step": 100,
+      "default": 400
+    },
+    {
+      "type": "color",
+      "id": "icon_color",
+      "label": "Shopping Bag Color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "range",
+      "id": "icon_thickness",
+      "label": "Icon Thickness",
+      "min": 1,
+      "max": 5,
+      "step": 0.1,
+      "default": 1.2
+    },
+    {
+      "type": "range",
+      "id": "icon_size",
+      "label": "Icon Size",
+      "min": 20,
+      "max": 100,
+      "step": 5,
+      "default": 30
+    },
+    {
+      "type": "range",
+      "id": "addToCart_size",
+      "label": "Add To Cart Font Size",
+      "min": 10,
+      "max": 50,
+      "step": 2,
+      "default": 16
+    },
+    {
+      "type": "color",
+      "id": "addToCart_color",
+      "label": "Add to Cart Color",
+      "default": "#ffffff",
+      "info": "Choose the color of the add to cart text"
+    },
+    {
+      "type": "color",
+      "id": "gradient_color_start",
+      "label": "Gradient Start Color",
+      "default": "#000000",
+      "info": "Choose the start color for the gradient"
+    },
+    {
+      "type": "color",
+      "id": "gradient_color_end",
+      "label": "Gradient End Color",
+      "default": "#000000",
+      "info": "Choose the end color for the gradient"
+    }
+  ]
+}
+{% endschema %}
