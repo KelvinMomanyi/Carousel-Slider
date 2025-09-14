@@ -1,4 +1,4 @@
-<link  href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css" rel="stylesheet"/>
+{% comment %} <link  href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css" rel="stylesheet"/>
  
  
 {% if block.settings.selected_collection != blank %}
@@ -671,4 +671,696 @@ function showSlider(type){
      ]
    }
    {% endschema %}
+    {% endcomment %}
+
+
+
+
+
+<link  href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css" rel="stylesheet"/>
+ 
+ 
+{% if block.settings.selected_collection != blank %}
+   {% assign collection = collections[block.settings.selected_collection].products %}
+ {% else %}
+   {% assign collection = collections.all.products %}
+ {% endif %}
+
+{% assign section_id = 'shv-carousel-' | append: section.id %}
+
+<div class="shv-slider-wrapper" id="{{ section_id }}">
+ <!-- list item -->
+ <div class="shv-slider-track">
+   {% for product in collection %} 
+     <div class="shv-slide">
+         <img src="{{ product.featured_image.src | img_url: 'master' }}" alt="{{ product.featured_image.alt | escape }}" class="slider-img" width="540" height="720" loading="lazy">
+         <div class="shv-slide-content">
+               <div class="shv-slide-meta">
+                 <a href="{{ product.url }}" 
+                 style="color: {{ block.settings.text_color }};
+                  text-decoration: none !important;
+                  font-size:{{ block.settings.font_size}}px;
+                  font-weight:{{ block.settings.font_weight}}">
+                  {{ product.title }}
+                  </a>
+               </div>
+               <div class="shv-slide-title">
+                <span class="price-span" 
+                style="color: {{ block.settings.text_color2 }};
+                 font-size:{{ block.settings.font_size1}}px;
+                 font-weight:{{ block.settings.font_weight1}}">
+                  {{ product.price | money }}
+               </span>
+               </div>
+               <div class="buttons">
+                   <form action="/cart/add" method="post" enctype="multipart/form-data" onsubmit="submitAddToCartForm_{{ section.id }}(this); return false;">
+                       <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}">
+                       <button type="submit" class="shv-add-to-cart-btn" aria-label="add to cart" style="display: flex !important; align-items: center !important; gap: 8px !important; padding: 8px 12px !important; border: none !important; background: none !important; cursor: pointer !important;">
+                         <svg width="{{ block.settings.icon_size }}" height="{{ block.settings.icon_size }}" viewBox="0 0 24 24" fill="none"
+                           stroke="{{  block.settings.icon_color}}" 
+                           stroke-width="{{ block.settings.icon_thickness}}" 
+                           stroke-linecap="round" stroke-linejoin="round">
+                           <!-- Bag handles (curving downward, floating above the bag) -->
+                           <path d="M9 11a3 3 0 0 0 6 0" />
+                           <!-- Outer bag handles -->
+                           <path d="M8 6.5a4 4 0 0 1 8 0" />
+                           <!-- Bag body -->
+                           <path d="M5 8h14v12a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V8z" />
+                         </svg>
+                         <p class="hide-on-mobile" style="font-size:{{ block.settings.addToCart_size}}px !important; color:{{ block.settings.addToCart_color}} !important; margin: 0 !important; padding: 0 !important;">Add to Cart</p>
+                       </button>
+                   </form> 
+               </div>
+       </div>
+     </div>
+     {% endfor %}
+   </div>
+ <!-- thumbnail section -->
+ <div class="shv-slider-thumbs">
+   {% for product in collection %}
+     <div class="shv-slide">
+         <img src="{{ product.featured_image.src | img_url : 'large'}}" alt="{{ product.featured_image.alt | escape }}" class="thumbnail-img" width="540" height="720" loading="lazy">
+     </div>
+   {% endfor %}
+ </div>
+ <!-- navigation buttons -->
+ <div class="shv-slider-nav">
+     <button id="prev-{{ section.id }}"><</button>
+     <button id="next-{{ section.id }}">></button>
+ </div>
+ <!-- progress bar -->
+ <div class="slider-progress"></div>
+</div>
+
+<style>
+/* Scoped styles to prevent conflicts */
+#{{ section_id }} {
+   height: 100vh;
+   width: 100%;
+   overflow: hidden;
+   position: relative;
+   font-family: inherit;
+   line-height: normal;
+   letter-spacing: normal;
+   text-align: left;
+   box-sizing: border-box;
+}
+
+#{{ section_id }} * {
+   box-sizing: border-box;
+}
+
+#{{ section_id }} .shv-slider-track {
+   overflow: hidden;
+}
+
+#{{ section_id }} .shv-slider-track .shv-slide {
+   width: 100%;
+   height: 100%;
+   position: absolute;
+   top: 0;
+   left: 0;
+   right: 0;
+   bottom: 0;
+}
+
+#{{ section_id }} .shv-slider-track .shv-slide img {
+   width: 100%;
+   height: 100%;
+   object-fit: cover;
+   display: block;
+   border: none;
+   outline: none;
+}
+
+#{{ section_id }} .shv-slider-track .shv-slide .shv-slide-content {
+   position: absolute;
+   top: 30%;
+   width: 1140px;
+   max-width: 80%;
+   left: 50%;
+   transform: translateX(-50%);
+   padding-right: 30%;
+   box-sizing: border-box;
+   padding-top: 5%;
+   text-shadow: 0 5px 10px rgba(0,0,0,0.267);
+   animation: goDark 3s;
+}
+
+@keyframes goDark{
+   0% {
+       opacity: 0;
+   }
+   80% {
+       opacity: 0;
+   }
+   100% {
+       opacity: 1;
+   }
+}
+
+#{{ section_id }} .shv-slider-track .shv-slide .shv-slide-meta {
+   font-weight: bold;
+   letter-spacing: 2px;
+}
+
+#{{ section_id }} .shv-slider-track .shv-slide .shv-slide-title,
+#{{ section_id }} .shv-slider-track .shv-slide .topic {
+   font-size: 2em;
+   font-weight: bold;
+}
+
+#{{ section_id }} .shv-slider-track .shv-slide .topic {
+   color: #f1683a;
+}
+
+/* thumbnail */
+#{{ section_id }} .shv-slider-thumbs {
+   position: absolute;
+   bottom: 50px;
+   left: 50%;
+   width: max-content;
+   z-index: 10;
+   display: flex;
+   gap: 20px;
+   overflow: hidden;
+}
+
+#{{ section_id }} .shv-slider-thumbs .shv-slide {
+   width: 150px;
+   height: 220px;
+   flex-shrink: 0;
+   position: relative;
+}
+
+#{{ section_id }} .shv-slider-thumbs .shv-slide img {
+   width: 100%;
+   height: 100%;
+   object-fit: cover;
+   border-radius: 20px;
+   display: block;
+   border: none;
+   outline: none;
+}
+
+#{{ section_id }} .shv-slider-thumbs .shv-slide .shv-slide-content {
+   color: #fff;
+   position: absolute;
+   bottom: 10px;
+   left: 10px;
+   right: 10px;
+}
+
+#{{ section_id }} .shv-slider-thumbs .shv-slide .shv-slide-content .shv-slide-title {
+   font-weight: 500;
+}
+
+#{{ section_id }} .shv-slider-thumbs .shv-slide .shv-slide-content .description {
+   font-weight: 300;
+}
+
+/*add to Cart*/
+#{{ section_id }} .shv-add-to-cart-btn {
+   background: transparent !important;
+   border: none !important;
+   padding: 8px 12px !important;
+   cursor: pointer !important;
+   display: flex !important;
+   align-items: center !important;
+   justify-content: center !important;
+   font-family: inherit !important;
+   text-decoration: none !important;
+   outline: none !important;
+}
+
+#{{ section_id }} .shv-add-to-cart-btn:hover {
+   text-decoration: none !important;
+}
+
+#{{ section_id }} .shv-add-to-cart-btn i {
+   font-size: 4rem;
+}
+
+/* arrows */
+#{{ section_id }} .shv-slider-nav {
+   position: absolute;
+   top: 80%;
+   right: 52%;
+   z-index: 10;
+   width: 300px;
+   max-width: 30%;
+   display: flex;
+   gap: 10px;
+   align-items: center;
+}
+
+#{{ section_id }} .shv-slider-nav button {
+   width: 40px;
+   height: 40px;
+   border-radius: 50%;
+   background-color: rgba(238,238,238,0.267);
+   border: none;
+   color: #fff;
+   font-family: monospace;
+   font-weight: bold;
+   transition: .5s;
+   cursor: pointer;
+   outline: none;
+}
+
+#{{ section_id }} .shv-slider-nav button:hover {
+   background-color: #fff;
+   color: #000;
+}
+
+/* animation */
+#{{ section_id }}.next .shv-slider-track .shv-slide:nth-child(1) {
+  z-index: 2;
+}
+
+#{{ section_id }} .shv-slider-track .shv-slide:nth-child(1) {
+  z-index: 2;
+}
+
+/* animation text in first item */
+#{{ section_id }} .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content {
+   display: flex;
+   flex-direction: column;
+   align-items: flex-start;
+}
+
+/* General Content Animation */
+#{{ section_id }} .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .shv-slide-meta,
+#{{ section_id }} .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .shv-slide-title,
+#{{ section_id }} .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .topic,
+#{{ section_id }} .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .des,
+#{{ section_id }} .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .buttons {
+   position: relative;
+   padding: 0px 15px;
+   display: inline-block;
+   width: auto;
+   transform: translateY(50px);
+   filter: blur(20px);
+   opacity: 0;
+   animation: showContent-{{ section.id }} 0.5s 1s linear 1 forwards !important;
+   animation-fill-mode: forwards;
+   overflow: hidden;
+}
+
+/* Background Animation */
+#{{ section_id }} .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .shv-slide-meta::before,
+#{{ section_id }} .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .shv-slide-title::before,
+#{{ section_id }} .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .topic::before,
+#{{ section_id }} .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .des::before,
+#{{ section_id }} .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .buttons::before {
+   content: "";
+   position: absolute;
+   clip-path: polygon(10% 0%, 100% 0%, 90% 100%, 0% 100%);
+   top: 0;
+   left: -100%;
+   width: 100%;
+   height: 100%;
+   background: linear-gradient(to right,{{ block.settings.gradient_color_start }}80 100%, {{ block.settings.gradient_color_end }}1A 100%);
+   z-index: -1;
+   animation: bgAnimate-{{ section.id }} 0.8s ease-in-out 0.8s forwards;
+   animation-fill-mode: forwards;
+}
+
+/* Keyframes for Background Animation */
+@keyframes bgAnimate-{{ section.id }} {
+   to {
+       left: 0;
+   }
+}
+
+/* Show Content Keyframes */
+@keyframes showContent-{{ section.id }} {
+   to {
+       transform: translateY(0px);
+       filter: blur(0px);
+       opacity: 1;
+   }
+}
+
+/* Individual Animation Delays */
+#{{ section_id }} .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .shv-slide-title {
+   animation-delay: 1.2s !important;
+}
+#{{ section_id }} .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .topic {
+   animation-delay: 1.4s !important;
+}
+#{{ section_id }} .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .des {
+   animation-delay: 1.6s !important;
+}
+#{{ section_id }} .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .buttons {
+   animation-delay: 1.8s !important;
+}
+
+#{{ section_id }} .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .shv-slide-title::before {
+   animation-delay: 1.4s !important;
+}
+#{{ section_id }} .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .topic::before {
+   animation-delay: 1.6s !important;
+}
+#{{ section_id }} .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .des::before {
+   animation-delay: 2s !important;
+}
+#{{ section_id }} .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .buttons::before {
+   animation-delay: 1.6s !important;
+}
+
+/* create animation when next click */
+#{{ section_id }}.next .shv-slider-track .shv-slide:nth-child(1) img {
+   width: 150px;
+   height: 220px;
+   position: absolute;
+   bottom: 50px;
+   left: 50%;
+   border-radius: 30px;
+   animation: showImage-{{ section.id }} .5s linear 1 forwards;
+}
+
+@keyframes showImage-{{ section.id }} {
+   to {
+       bottom: 0;
+       left: 0;
+       width: 100%;
+       height: 100%;
+       border-radius: 0;
+   }
+}
+
+#{{ section_id }}.next .shv-slider-thumbs .shv-slide:nth-last-child(1) {
+   overflow: hidden;
+   animation: showThumbnail-{{ section.id }} .5s linear 1 forwards;
+}
+
+#{{ section_id }}.prev .shv-slider-track .shv-slide img {
+   z-index: 100;
+}
+
+@keyframes showThumbnail-{{ section.id }} {
+   from {
+       width: 0;
+       opacity: 0;
+   }
+}
+
+#{{ section_id }}.next .shv-slider-thumbs {
+   animation: effectNext-{{ section.id }} .5s linear 1 forwards;
+}
+
+@keyframes effectNext-{{ section.id }} {
+   from {
+       transform: translateX(150px);
+   }
+}
+
+/* running time */
+#{{ section_id }} .time {
+   position: absolute;
+   z-index: 1000;
+   width: 0%;
+   height: 3px;
+   background-color: #f1683a;
+   left: 0;
+   top: 0;
+}
+
+#{{ section_id }}.next .time,
+#{{ section_id }}.prev .time {
+   animation: runningTime-{{ section.id }} 3s linear 1 forwards;
+}
+
+@keyframes runningTime-{{ section.id }} {
+   from { width: 100% }
+   to { width: 0 }
+}
+
+/* prev click */
+#{{ section_id }}.prev .shv-slider-track .shv-slide:nth-child(2) {
+   z-index: 2;
+}
+
+#{{ section_id }}.prev .shv-slider-track .shv-slide:nth-child(2) img {
+   animation: outFrame-{{ section.id }} 0.5s linear 1 forwards;
+   position: absolute;
+   bottom: 0;
+   left: 0;
+}
+
+@keyframes outFrame-{{ section.id }} {
+   to {
+       width: 150px;
+       height: 220px;
+       bottom: 50px;
+       left: 50%;
+       border-radius: 20px;
+   }
+}
+
+#{{ section_id }}.prev .shv-slider-thumbs .shv-slide:nth-child(1) {
+   overflow: hidden;
+   opacity: 0;
+   animation: showThumbnail-{{ section.id }} .5s linear 1 forwards;
+}
+
+#{{ section_id }}.next .shv-slider-nav button,
+#{{ section_id }}.prev .shv-slider-nav button {
+   pointer-events: none;
+}
+
+#{{ section_id }}.prev .shv-slider-track .shv-slide:nth-child(2) .shv-slide-content .shv-slide-meta,
+#{{ section_id }}.prev .shv-slider-track .shv-slide:nth-child(2) .shv-slide-content .shv-slide-title,
+#{{ section_id }}.prev .shv-slider-track .shv-slide:nth-child(2) .shv-slide-content .topic,
+#{{ section_id }}.prev .shv-slider-track .shv-slide:nth-child(2) .shv-slide-content .des,
+#{{ section_id }}.prev .shv-slider-track .shv-slide:nth-child(2) .shv-slide-content .buttons {
+   animation: contentOut-{{ section.id }} 1.5s linear 1 forwards !important;
+}
+
+@keyframes contentOut-{{ section.id }} {
+   to {
+       transform: translateY(-150px);
+       filter: blur(20px);
+       opacity: 0;
+   }
+}
+
+@media screen and (max-width: 678px) {
+   #{{ section_id }} .shv-slider-track .shv-slide .shv-slide-content {
+       padding-right: 0;
+   }
+   #{{ section_id }} .shv-slider-track .shv-slide .shv-slide-content .shv-slide-title {
+       font-size: 30px;
+   }
+   #{{ section_id }} .hide-on-mobile {
+       display: none !important;
+   }
+}
+</style>
+
+<script>
+(function() {
+   // Scoped JavaScript to prevent conflicts
+   const sectionId = '{{ section.id }}';
+   const carouselWrapper = document.getElementById('{{ section_id }}');
    
+   if (!carouselWrapper) return;
+   
+   const nextDom = document.getElementById('next-' + sectionId);
+   const prevDom = document.getElementById('prev-' + sectionId);
+   const SliderDom = carouselWrapper.querySelector('.shv-slider-track');
+   const thumbnailBorderDom = carouselWrapper.querySelector('.shv-slider-thumbs');
+   let thumbnailItemsDom = thumbnailBorderDom.querySelectorAll('.shv-slide');
+   
+   if (thumbnailItemsDom.length > 0) {
+       thumbnailBorderDom.appendChild(thumbnailItemsDom[0]);
+   }
+   
+   const timeRunning = 3000;
+   const timeAutoNext = 7000;
+
+   let runTimeOut;
+   let runNextAuto = setTimeout(() => {
+       if (nextDom) nextDom.click();
+   }, timeAutoNext);
+
+   function showSlider(type) {
+       const SliderItemsDom = SliderDom.querySelectorAll('.shv-slide');
+       const thumbnailItemsDom = carouselWrapper.querySelectorAll('.shv-slider-thumbs .shv-slide');
+       
+       if (type === 'next') {
+           SliderDom.appendChild(SliderItemsDom[0]);
+           thumbnailBorderDom.appendChild(thumbnailItemsDom[0]);
+           carouselWrapper.classList.add('next');
+       } else {
+           SliderDom.prepend(SliderItemsDom[SliderItemsDom.length - 1]);
+           thumbnailBorderDom.prepend(thumbnailItemsDom[thumbnailItemsDom.length - 1]);
+           carouselWrapper.classList.add('prev');
+       }
+       
+       clearTimeout(runTimeOut);
+       runTimeOut = setTimeout(() => {
+           carouselWrapper.classList.remove('next');
+           carouselWrapper.classList.remove('prev');
+       }, timeRunning);
+
+       clearTimeout(runNextAuto);
+       runNextAuto = setTimeout(() => {
+           if (nextDom) nextDom.click();
+       }, timeAutoNext);
+   }
+
+   if (nextDom) {
+       nextDom.onclick = function() {
+           showSlider('next');
+       };
+   }
+
+   if (prevDom) {
+       prevDom.onclick = function() {
+           showSlider('prev');
+       };
+   }
+
+   // Scoped add to cart function
+   window['submitAddToCartForm_' + sectionId] = function(form) {
+       // Add your cart submission logic here
+       // This is a placeholder - implement according to your theme's cart functionality
+       fetch('/cart/add.js', {
+           method: 'POST',
+           headers: {
+               'Content-Type': 'application/x-www-form-urlencoded',
+           },
+           body: new URLSearchParams(new FormData(form))
+       }).then(response => response.json())
+         .then(data => {
+             console.log('Product added to cart:', data);
+             // Add success feedback here
+         })
+         .catch(error => {
+             console.error('Error adding to cart:', error);
+         });
+   };
+})();
+</script>
+
+{% schema %}
+   {
+     "name": "Carousel Slider",
+     "target": "section",
+     "settings": [
+       {
+         "type": "collection",
+         "id": "selected_collection",
+         "label": "Select Collection"
+       },
+       {
+         "type": "color",
+         "id": "text_color",
+         "label": "Text Color",
+         "default": "#ffffff"
+       },
+       {
+         "type": "range",
+         "id": "font_size",
+         "label": "Font Size",
+         "min": 10,
+         "max": 50,
+         "step": 1,
+         "default": 20,
+         "unit": "px"
+       },
+       {
+        "type": "range",
+         "id": "font_weight",
+         "label": "Font Weight",
+         "min": 100,
+         "max": 900,
+         "step": 100,
+         "default": 400
+
+       },
+       {
+           "type": "color",
+           "id": "text_color2",
+           "label": "Price Text Color",
+           "default": "#ffffff"
+         },
+         {
+         "type": "range",
+         "id": "font_size1",
+         "label": "Font Size",
+         "min": 10,
+         "max": 50,
+         "step": 1,
+         "default": 20,
+         "unit": "px"
+          },
+          {
+         "type": "range",
+         "id": "font_weight1",
+         "label": "Font Weight",
+         "min": 100,
+         "max": 900,
+         "step": 100,
+         "default": 400
+         },
+         {
+           "type": "color",
+           "id": "icon_color",
+           "label": "Shopping bag Color",
+           "default": "#ffffff"
+         },
+         {
+           "type": "range",
+           "id": "icon_thickness",
+           "label": "Icon Thickness",
+           "min": 1,
+           "max": 5,
+           "step": 0.1,
+           "default": 1.2
+           },
+           {
+           "type": "range",
+           "id": "icon_size",
+           "label": "Icon Size",
+           "min": 20,
+           "max": 100,
+           "step": 5,
+           "default": 30
+           }, 
+           {
+           "type": "range",
+           "id": "addToCart_size",
+           "label": "Add To Cart font Size",
+           "min": 20,
+           "max": 100,
+           "step": 5,
+           "default":20
+           }, 
+           {
+           "type": "color",
+           "id": "addToCart_color",
+           "label": "Add to Cart Color",
+           "default": "#ffffff",
+           "info": "Choose the color of the add to cart word"
+           },
+           {
+           "type": "color",
+           "id": "gradient_color_start",
+           "label": "Gradient Start Color",
+           "default": "#000000",
+           "info": "Choose the start color for the gradient."
+           },
+           {
+           "type": "color",
+           "id": "gradient_color_end",
+           "label": "Gradient End Color",
+           "default": "#000000",
+           "info": "Choose the end color for the gradient."
+           }
+
+     ]
+   }
+   {% endschema %}     
