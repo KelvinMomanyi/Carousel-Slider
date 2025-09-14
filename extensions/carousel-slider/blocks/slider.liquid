@@ -1,4 +1,4 @@
-{% comment %} <link  href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css" rel="stylesheet"/>
+{% comment %} {% comment %} <link  href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css" rel="stylesheet"/>
  
  
 {% if block.settings.selected_collection != blank %}
@@ -1209,6 +1209,898 @@ function showSlider(type){
   } else {
     SHV_SLIDER.init();
   }
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Carousel Slider",
+  "target": "section",
+  "settings": [
+    {
+      "type": "collection",
+      "id": "selected_collection",
+      "label": "Select Collection"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text Color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "range",
+      "id": "font_size",
+      "label": "Font Size",
+      "min": 10,
+      "max": 50,
+      "step": 1,
+      "default": 20,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "font_weight",
+      "label": "Font Weight",
+      "min": 100,
+      "max": 900,
+      "step": 100,
+      "default": 400
+    },
+    {
+      "type": "color",
+      "id": "text_color2",
+      "label": "Price Text Color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "range",
+      "id": "font_size1",
+      "label": "Price Font Size",
+      "min": 10,
+      "max": 50,
+      "step": 1,
+      "default": 20,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "font_weight1",
+      "label": "Price Font Weight",
+      "min": 100,
+      "max": 900,
+      "step": 100,
+      "default": 400
+    },
+    {
+      "type": "color",
+      "id": "icon_color",
+      "label": "Shopping Bag Color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "range",
+      "id": "icon_thickness",
+      "label": "Icon Thickness",
+      "min": 1,
+      "max": 5,
+      "step": 0.1,
+      "default": 1.2
+    },
+    {
+      "type": "range",
+      "id": "icon_size",
+      "label": "Icon Size",
+      "min": 20,
+      "max": 100,
+      "step": 5,
+      "default": 30
+    },
+    {
+      "type": "range",
+      "id": "addToCart_size",
+      "label": "Add To Cart Font Size",
+      "min": 10,
+      "max": 50,
+      "step": 2,
+      "default": 16
+    },
+    {
+      "type": "color",
+      "id": "addToCart_color",
+      "label": "Add to Cart Color",
+      "default": "#ffffff",
+      "info": "Choose the color of the add to cart text"
+    },
+    {
+      "type": "color",
+      "id": "gradient_color_start",
+      "label": "Gradient Start Color",
+      "default": "#000000",
+      "info": "Choose the start color for the gradient"
+    },
+    {
+      "type": "color",
+      "id": "gradient_color_end",
+      "label": "Gradient End Color",
+      "default": "#000000",
+      "info": "Choose the end color for the gradient"
+    }
+  ]
+}
+{% endschema %} {% endcomment %}
+
+
+
+
+
+
+
+
+
+
+
+{% comment %} NEW {% endcomment %}
+
+<link href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css" rel="stylesheet"/>
+
+{% if block.settings.selected_collection != blank %}
+  {% assign collection = collections[block.settings.selected_collection].products %}
+{% else %}
+  {% assign collection = collections.all.products %}
+{% endif %}
+
+<!-- Generate unique ID for this specific instance -->
+{% capture slider_id %}shv-slider-{{ block.id | default: 'default' }}{% endcapture %}
+
+<div class="shv-slider-wrapper" data-shv-slider="{{ slider_id }}" id="{{ slider_id }}">
+  <!-- Main slider track -->
+  <div class="shv-slider-track">
+    {% for product in collection %} 
+      <div class="shv-slide">
+        <img src="{{ product.featured_image.src | img_url: 'master' }}" 
+             alt="{{ product.featured_image.alt | escape }}" 
+             class="shv-slider-img" 
+             width="540" 
+             height="720" 
+             loading="lazy">
+        <div class="shv-slide-content">
+          <div class="shv-slide-meta">
+            <a href="{{ product.url }}" 
+               class="shv-product-link"
+               style="color: {{ block.settings.text_color }};
+                      text-decoration: none;
+                      font-size: {{ block.settings.font_size }}px;
+                      font-weight: {{ block.settings.font_weight }};">
+              {{ product.title }}
+            </a>
+          </div>
+          <div class="shv-slide-title">
+            <span class="shv-price-span" 
+                  style="color: {{ block.settings.text_color2 }};
+                         font-size: {{ block.settings.font_size1 }}px;
+                         font-weight: {{ block.settings.font_weight1 }};">
+              {{ product.price | money }}
+            </span>
+          </div>
+          <div class="shv-buttons">
+            <form action="/cart/add" 
+                  method="post" 
+                  enctype="multipart/form-data" 
+                  class="shv-cart-form" 
+                  data-shv-form="{{ slider_id }}"
+                  data-product-id="{{ product.id }}">
+              <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}">
+              <button type="submit" 
+                      class="shv-add-to-cart-btn" 
+                      data-variant-id="{{ product.selected_or_first_available_variant.id }}"
+                      aria-label="Add {{ product.title | escape }} to cart">
+                <svg width="{{ block.settings.icon_size }}" 
+                     height="{{ block.settings.icon_size }}" 
+                     viewBox="0 0 24 24" 
+                     fill="none"
+                     stroke="{{ block.settings.icon_color }}" 
+                     stroke-width="{{ block.settings.icon_thickness }}" 
+                     stroke-linecap="round" 
+                     stroke-linejoin="round"
+                     class="shv-cart-icon">
+                  <path d="M9 11a3 3 0 0 0 6 0" />
+                  <path d="M8 6.5a4 4 0 0 1 8 0" />
+                  <path d="M5 8h14v12a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V8z" />
+                </svg>
+                <span class="shv-cart-text shv-hide-on-mobile" 
+                      style="font-size: {{ block.settings.addToCart_size }}px; 
+                             color: {{ block.settings.addToCart_color }};">
+                  Add to Cart
+                </span>
+              </button>
+            </form> 
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+  <!-- Thumbnail section -->
+  <div class="shv-slider-thumbs">
+    {% for product in collection %}
+      <div class="shv-slide">
+        <img src="{{ product.featured_image.src | img_url : 'large' }}" 
+             alt="{{ product.featured_image.alt | escape }}" 
+             class="shv-thumbnail-img" 
+             width="540" 
+             height="720" 
+             loading="lazy">
+      </div>
+    {% endfor %}
+  </div>
+
+  <!-- Navigation buttons -->
+  <div class="shv-slider-nav">
+    <button class="shv-nav-btn shv-prev-btn" 
+            data-shv-prev="{{ slider_id }}" 
+            aria-label="Previous slide">&lt;</button>
+    <button class="shv-nav-btn shv-next-btn" 
+            data-shv-next="{{ slider_id }}" 
+            aria-label="Next slide">&gt;</button>
+  </div>
+
+  <!-- Progress bar -->
+  <div class="shv-slider-progress"></div>
+</div>
+
+<style>
+/* CSS Reset and Isolation for Slider */
+.shv-slider-wrapper {
+  all: initial;
+  contain: layout style paint;
+  isolation: isolate;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  height: 100vh !important;
+  width: 100% !important;
+  overflow: hidden !important;
+  position: relative !important;
+  box-sizing: border-box !important;
+  display: block !important;
+}
+
+.shv-slider-wrapper *,
+.shv-slider-wrapper *::before,
+.shv-slider-wrapper *::after {
+  box-sizing: border-box !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Restore necessary display values */
+.shv-slider-wrapper .shv-slider-track {
+  display: block !important;
+  overflow: hidden !important;
+  height: 100% !important;
+  width: 100% !important;
+  position: relative !important;
+}
+
+.shv-slider-wrapper .shv-slider-track .shv-slide {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+}
+
+.shv-slider-wrapper .shv-slider-track .shv-slide .shv-slider-img {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  border: none !important;
+  outline: none !important;
+}
+
+/* Slide content */
+.shv-slider-wrapper .shv-slider-track .shv-slide .shv-slide-content {
+  display: block !important;
+  position: absolute !important;
+  top: 30% !important;
+  width: min(1140px, 80%) !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  padding-right: 30% !important;
+  padding-top: 5% !important;
+  text-shadow: 0 5px 10px rgba(0, 0, 0, 0.27) !important;
+  animation: shv-goDark 3s !important;
+  z-index: 10 !important;
+}
+
+@keyframes shv-goDark {
+  0% { opacity: 0; }
+  80% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+.shv-slider-wrapper .shv-slider-track .shv-slide .shv-slide-meta {
+  display: block !important;
+  font-weight: bold !important;
+  letter-spacing: 2px !important;
+  margin-bottom: 10px !important;
+  line-height: 1.4 !important;
+}
+
+.shv-slider-wrapper .shv-slider-track .shv-slide .shv-slide-title {
+  display: block !important;
+  font-size: 2em !important;
+  font-weight: bold !important;
+  margin-bottom: 20px !important;
+  line-height: 1.2 !important;
+}
+
+.shv-slider-wrapper .shv-product-link {
+  text-decoration: none !important;
+  border: none !important;
+  outline: none !important;
+}
+
+.shv-slider-wrapper .shv-product-link:hover,
+.shv-slider-wrapper .shv-product-link:focus {
+  text-decoration: underline !important;
+}
+
+/* Add to cart button */
+.shv-slider-wrapper .shv-add-to-cart-btn {
+  all: unset !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  background: transparent !important;
+  border: none !important;
+  padding: 8px 12px !important;
+  cursor: pointer !important;
+  transition: all 0.3s ease !important;
+  font-family: inherit !important;
+}
+
+.shv-slider-wrapper .shv-add-to-cart-btn:hover {
+  transform: translateY(-2px) !important;
+}
+
+.shv-slider-wrapper .shv-cart-form {
+  display: block !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  background: none !important;
+}
+
+.shv-slider-wrapper .shv-buttons {
+  display: block !important;
+  margin-top: 15px !important;
+}
+
+/* Thumbnails */
+.shv-slider-wrapper .shv-slider-thumbs {
+  display: flex !important;
+  position: absolute !important;
+  bottom: 50px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  width: max-content !important;
+  z-index: 10 !important;
+  gap: 20px !important;
+  overflow: hidden !important;
+}
+
+.shv-slider-wrapper .shv-slider-thumbs .shv-slide {
+  display: block !important;
+  width: 150px !important;
+  height: 220px !important;
+  flex-shrink: 0 !important;
+  position: relative !important;
+}
+
+.shv-slider-wrapper .shv-slider-thumbs .shv-slide .shv-thumbnail-img {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  border-radius: 20px !important;
+  border: none !important;
+  outline: none !important;
+}
+
+/* Navigation */
+.shv-slider-wrapper .shv-slider-nav {
+  display: flex !important;
+  position: absolute !important;
+  top: 80% !important;
+  right: 52% !important;
+  z-index: 10 !important;
+  width: min(300px, 30%) !important;
+  gap: 10px !important;
+  align-items: center !important;
+}
+
+.shv-slider-wrapper .shv-nav-btn {
+  all: unset !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 50% !important;
+  background-color: rgba(238, 238, 238, 0.27) !important;
+  border: none !important;
+  color: #fff !important;
+  font-family: monospace !important;
+  font-weight: bold !important;
+  transition: 0.5s !important;
+  cursor: pointer !important;
+  font-size: 16px !important;
+}
+
+.shv-slider-wrapper .shv-nav-btn:hover {
+  background-color: #fff !important;
+  color: #000 !important;
+}
+
+/* First slide z-index */
+.shv-slider-wrapper .shv-slider-track .shv-slide:nth-child(1) {
+  z-index: 2 !important;
+}
+
+/* Animation for first slide content */
+.shv-slider-wrapper .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+}
+
+.shv-slider-wrapper .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .shv-slide-meta,
+.shv-slider-wrapper .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .shv-slide-title,
+.shv-slider-wrapper .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .shv-buttons {
+  position: relative !important;
+  padding: 0px 15px !important;
+  display: inline-block !important;
+  width: auto !important;
+  transform: translateY(50px) !important;
+  filter: blur(20px) !important;
+  opacity: 0 !important;
+  animation: shv-showContent 0.5s 1s linear 1 forwards !important;
+  overflow: hidden !important;
+}
+
+.shv-slider-wrapper .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .shv-slide-meta::before,
+.shv-slider-wrapper .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .shv-slide-title::before,
+.shv-slider-wrapper .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .shv-buttons::before {
+  content: "" !important;
+  position: absolute !important;
+  clip-path: polygon(10% 0%, 100% 0%, 90% 100%, 0% 100%) !important;
+  top: 0 !important;
+  left: -100% !important;
+  width: 100% !important;
+  height: 100% !important;
+  background: linear-gradient(to right, {{ block.settings.gradient_color_start }}80 100%, {{ block.settings.gradient_color_end }}1A 100%) !important;
+  z-index: -1 !important;
+  animation: shv-bgAnimate 0.8s ease-in-out 0.8s forwards !important;
+}
+
+@keyframes shv-bgAnimate {
+  to { left: 0; }
+}
+
+@keyframes shv-showContent {
+  to {
+    transform: translateY(0px);
+    filter: blur(0px);
+    opacity: 1;
+  }
+}
+
+/* Animation delays */
+.shv-slider-wrapper .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .shv-slide-title {
+  animation-delay: 1.2s !important;
+}
+
+.shv-slider-wrapper .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .shv-buttons {
+  animation-delay: 1.8s !important;
+}
+
+.shv-slider-wrapper .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .shv-slide-title::before {
+  animation-delay: 1.4s !important;
+}
+
+.shv-slider-wrapper .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .shv-buttons::before {
+  animation-delay: 1.6s !important;
+}
+
+/* Next animation */
+.shv-slider-wrapper.shv-next .shv-slider-track .shv-slide:nth-child(1) .shv-slider-img {
+  width: 150px !important;
+  height: 220px !important;
+  position: absolute !important;
+  bottom: 50px !important;
+  left: 50% !important;
+  border-radius: 30px !important;
+  animation: shv-showImage 0.5s linear 1 forwards !important;
+}
+
+@keyframes shv-showImage {
+  to {
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 0;
+  }
+}
+
+.shv-slider-wrapper.shv-next .shv-slider-thumbs .shv-slide:nth-last-child(1) {
+  overflow: hidden !important;
+  animation: shv-showThumbnail 0.5s linear 1 forwards !important;
+}
+
+@keyframes shv-showThumbnail {
+  from {
+    width: 0;
+    opacity: 0;
+  }
+}
+
+.shv-slider-wrapper.shv-next .shv-slider-thumbs {
+  animation: shv-effectNext 0.5s linear 1 forwards !important;
+}
+
+@keyframes shv-effectNext {
+  from { transform: translateX(150px); }
+}
+
+/* Progress bar */
+.shv-slider-wrapper .shv-slider-progress {
+  display: block !important;
+  position: absolute !important;
+  z-index: 1000 !important;
+  width: 0% !important;
+  height: 3px !important;
+  background-color: #f1683a !important;
+  left: 0 !important;
+  top: 0 !important;
+}
+
+.shv-slider-wrapper.shv-next .shv-slider-progress,
+.shv-slider-wrapper.shv-prev .shv-slider-progress {
+  animation: shv-runningTime 3s linear 1 forwards !important;
+}
+
+@keyframes shv-runningTime {
+  from { width: 100%; }
+  to { width: 0; }
+}
+
+/* Previous animation */
+.shv-slider-wrapper.shv-prev .shv-slider-track .shv-slide:nth-child(2) {
+  z-index: 2 !important;
+}
+
+.shv-slider-wrapper.shv-prev .shv-slider-track .shv-slide:nth-child(2) .shv-slider-img {
+  animation: shv-outFrame 0.5s linear 1 forwards !important;
+  position: absolute !important;
+  bottom: 0 !important;
+  left: 0 !important;
+}
+
+@keyframes shv-outFrame {
+  to {
+    width: 150px;
+    height: 220px;
+    bottom: 50px;
+    left: 50%;
+    border-radius: 20px;
+  }
+}
+
+.shv-slider-wrapper.shv-prev .shv-slider-thumbs .shv-slide:nth-child(1) {
+  overflow: hidden !important;
+  opacity: 0 !important;
+  animation: shv-showThumbnail 0.5s linear 1 forwards !important;
+}
+
+.shv-slider-wrapper.shv-next .shv-nav-btn,
+.shv-slider-wrapper.shv-prev .shv-nav-btn {
+  pointer-events: none !important;
+}
+
+.shv-slider-wrapper.shv-prev .shv-slider-track .shv-slide:nth-child(2) .shv-slide-content .shv-slide-meta,
+.shv-slider-wrapper.shv-prev .shv-slider-track .shv-slide:nth-child(2) .shv-slide-content .shv-slide-title,
+.shv-slider-wrapper.shv-prev .shv-slider-track .shv-slide:nth-child(2) .shv-slide-content .shv-buttons {
+  animation: shv-contentOut 1.5s linear 1 forwards !important;
+}
+
+@keyframes shv-contentOut {
+  to {
+    transform: translateY(-150px);
+    filter: blur(20px);
+    opacity: 0;
+  }
+}
+
+/* Mobile responsive */
+@media screen and (max-width: 678px) {
+  .shv-slider-wrapper .shv-slider-track .shv-slide .shv-slide-content {
+    padding-right: 0 !important;
+    width: 90% !important;
+  }
+  
+  .shv-slider-wrapper .shv-slider-track .shv-slide .shv-slide-title {
+    font-size: 30px !important;
+  }
+  
+  .shv-slider-wrapper .shv-hide-on-mobile {
+    display: none !important;
+  }
+  
+  .shv-slider-wrapper .shv-slider-thumbs {
+    bottom: 20px !important;
+    gap: 10px !important;
+  }
+  
+  .shv-slider-wrapper .shv-slider-thumbs .shv-slide {
+    width: 100px !important;
+    height: 150px !important;
+  }
+  
+  .shv-slider-wrapper .shv-slider-nav {
+    width: 40% !important;
+    right: 50% !important;
+  }
+}
+
+/* Hide text spans on mobile */
+.shv-slider-wrapper .shv-hide-on-mobile {
+  display: inline !important;
+}
+
+@media screen and (max-width: 678px) {
+  .shv-slider-wrapper .shv-hide-on-mobile {
+    display: none !important;
+  }
+}
+</style>
+
+<script>
+// Immediately Invoked Function Expression to prevent global scope pollution
+(function() {
+  'use strict';
+  
+  // Create namespace for this specific slider instance
+  const SliderId = '{{ slider_id }}';
+  
+  // Only initialize if this specific slider exists on the page
+  const sliderWrapper = document.querySelector('[data-shv-slider="' + SliderId + '"]');
+  if (!sliderWrapper) {
+    return; // Exit early if slider not found
+  }
+  
+  // Slider instance object
+  const SliderInstance = {
+    id: SliderId,
+    wrapper: sliderWrapper,
+    nextBtn: null,
+    prevBtn: null,
+    sliderTrack: null,
+    thumbsContainer: null,
+    timeRunning: 3000,
+    timeAutoNext: 7000,
+    runTimeOut: null,
+    runNextAuto: null,
+    isInitialized: false,
+    
+    init: function() {
+      if (this.isInitialized) {
+        return; // Prevent double initialization
+      }
+      
+      // Get DOM elements using data attributes instead of IDs
+      this.nextBtn = this.wrapper.querySelector('[data-shv-next="' + this.id + '"]');
+      this.prevBtn = this.wrapper.querySelector('[data-shv-prev="' + this.id + '"]');
+      this.sliderTrack = this.wrapper.querySelector('.shv-slider-track');
+      this.thumbsContainer = this.wrapper.querySelector('.shv-slider-thumbs');
+      
+      // Verify all required elements exist
+      if (!this.sliderTrack || !this.thumbsContainer) {
+        console.warn('SHV Slider: Required elements not found for', this.id);
+        return;
+      }
+      
+      // Initialize thumbnail order
+      const thumbnailItems = this.thumbsContainer.querySelectorAll('.shv-slide');
+      if (thumbnailItems.length > 0) {
+        this.thumbsContainer.appendChild(thumbnailItems[0]);
+      }
+      
+      // Bind events with proper context
+      if (this.nextBtn) {
+        this.nextBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          this.showSlider('next');
+        });
+      }
+      
+      if (this.prevBtn) {
+        this.prevBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          this.showSlider('prev');
+        });
+      }
+      
+      // Handle cart form submissions
+      this.initCartForms();
+      
+      // Start auto-advance
+      this.startAutoAdvance();
+      
+      // Pause on hover
+      this.wrapper.addEventListener('mouseenter', () => {
+        this.pauseAutoAdvance();
+      });
+      
+      this.wrapper.addEventListener('mouseleave', () => {
+        this.startAutoAdvance();
+      });
+      
+      this.isInitialized = true;
+      console.log('SHV Slider initialized:', this.id);
+    },
+    
+    initCartForms: function() {
+      const cartForms = this.wrapper.querySelectorAll('[data-shv-form="' + this.id + '"]');
+      cartForms.forEach((form) => {
+        form.addEventListener('submit', (e) => {
+          e.preventDefault();
+          this.handleCartSubmit(form);
+        });
+      });
+    },
+    
+    handleCartSubmit: function(form) {
+      const formData = new FormData(form);
+      const button = form.querySelector('.shv-add-to-cart-btn');
+      const originalText = button.querySelector('.shv-cart-text');
+      
+      // Provide visual feedback
+      if (button) {
+        button.style.opacity = '0.7';
+        button.disabled = true;
+        if (originalText) {
+          originalText.textContent = 'Adding...';
+        }
+      }
+      
+      // Use Shopify's cart API or fall back to theme's method
+      fetch('/cart/add.js', {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+        // Trigger theme's cart update events if they exist
+        if (typeof window.theme !== 'undefined' && window.theme.cart) {
+          window.theme.cart.getCart();
+        }
+        
+        // Trigger custom event for theme integration
+        document.dispatchEvent(new CustomEvent('cart:updated', {
+          detail: { item: data }
+        }));
+        
+        // Reset button state
+        if (button) {
+          button.style.opacity = '1';
+          button.disabled = false;
+          if (originalText) {
+            originalText.textContent = 'Add to Cart';
+          }
+        }
+      })
+      .catch(error => {
+        console.error('Cart add error:', error);
+        // Reset button state on error
+        if (button) {
+          button.style.opacity = '1';
+          button.disabled = false;
+          if (originalText) {
+            originalText.textContent = 'Add to Cart';
+          }
+        }
+      });
+    },
+    
+    showSlider: function(type) {
+      const sliderItems = this.sliderTrack.querySelectorAll('.shv-slide');
+      const thumbnailItems = this.thumbsContainer.querySelectorAll('.shv-slide');
+      
+      if (sliderItems.length === 0 || thumbnailItems.length === 0) {
+        return;
+      }
+      
+      if (type === 'next') {
+        this.sliderTrack.appendChild(sliderItems[0]);
+        this.thumbsContainer.appendChild(thumbnailItems[0]);
+        this.wrapper.classList.add('shv-next');
+      } else {
+        this.sliderTrack.prepend(sliderItems[sliderItems.length - 1]);
+        this.thumbsContainer.prepend(thumbnailItems[thumbnailItems.length - 1]);
+        this.wrapper.classList.add('shv-prev');
+      }
+      
+      // Clear existing timeouts
+      if (this.runTimeOut) {
+        clearTimeout(this.runTimeOut);
+      }
+      
+      // Remove animation classes after animation completes
+      this.runTimeOut = setTimeout(() => {
+        this.wrapper.classList.remove('shv-next', 'shv-prev');
+      }, this.timeRunning);
+      
+      // Restart auto-advance
+      this.startAutoAdvance();
+    },
+    
+    startAutoAdvance: function() {
+      if (this.runNextAuto) {
+        clearTimeout(this.runNextAuto);
+      }
+      
+      this.runNextAuto = setTimeout(() => {
+        if (this.nextBtn && this.isInitialized) {
+          this.showSlider('next');
+        }
+      }, this.timeAutoNext);
+    },
+    
+    pauseAutoAdvance: function() {
+      if (this.runNextAuto) {
+        clearTimeout(this.runNextAuto);
+        this.runNextAuto = null;
+      }
+    },
+    
+    destroy: function() {
+      this.pauseAutoAdvance();
+      if (this.runTimeOut) {
+        clearTimeout(this.runTimeOut);
+      }
+      this.isInitialized = false;
+    }
+  };
+  
+  // Initialize when DOM is ready
+  function initSlider() {
+    SliderInstance.init();
+  }
+  
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initSlider);
+  } else {
+    initSlider();
+  }
+  
+  // Store reference for potential cleanup
+  if (!window.SHV_SLIDERS) {
+    window.SHV_SLIDERS = {};
+  }
+  window.SHV_SLIDERS[SliderId] = SliderInstance;
+  
+  // Clean up on page navigation (for SPA themes)
+  window.addEventListener('beforeunload', function() {
+    SliderInstance.destroy();
+  });
+  
 })();
 </script>
 
