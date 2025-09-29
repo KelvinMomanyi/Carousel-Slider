@@ -1,723 +1,51 @@
-{% comment %} <link  href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css" rel="stylesheet"/>
- 
- 
+<link href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css" rel="stylesheet"/>
+
 {% if block.settings.selected_collection != blank %}
    {% assign collection = collections[block.settings.selected_collection].products %}
- {% else %}
+{% else %}
    {% assign collection = collections.all.products %}
- {% endif %}
-
-
-
-<div class="shv-slider-wrapper">
- <!-- list item -->
- <div class="shv-slider-track">
-   {% for product in collection %} 
-     <div class="shv-slide">
-         <img src="{{ product.featured_image.src | img_url: 'master' }}" alt="{{ product.featured_image.alt | escape }}" class="slider-img" width="540" height="720" loading="lazy">
-         <div class="shv-slide-content">
-               <div class="shv-slide-meta">
-                 <a href="{{ product.url }}" 
-                 style="color: {{ block.settings.text_color }};
-                  text-decoration: none;
-                  font-size:{{ block.settings.font_size}}px;
-                  font-weight:{{ block.settings.font_weight}}">
-                  {{ product.title }}
-                  </a>
-               </div>
-               <div class="shv-slide-title">
-                <span class="price-span" 
-                style="color: {{ block.settings.text_color2 }};
-                 font-size:{{ block.settings.font_size1}}px;
-                 font-weight:{{ block.settings.font_weight1}}">
-                  {{ product.price | money }}
-               </span>
-               </div>
-               <div class="buttons">
-                   <form action="/cart/add" method="post" enctype="multipart/form-data" onsubmit="submitAddToCartForm(this); return false;">
-                       <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}">
-                       <button type="submit" class="shv-add-to-cart-btn" aria-label="add to cart" style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; border: none; background: none; cursor: pointer;">
-                         <svg width="{{ block.settings.icon_size }}" height="{{ block.settings.icon_size }}" viewBox="0 0 24 24" fill="none"
-                           stroke="{{  block.settings.icon_color}}" 
-                           stroke-width="{{ block.settings.icon_thickness}}" 
-                           stroke-linecap="round" stroke-linejoin="round">
-                           <!-- Bag handles (curving downward, floating above the bag) -->
-                           <path d="M9 11a3 3 0 0 0 6 0" />
-                           <!-- Outer bag handles -->
-                           <path d="M8 6.5a4 4 0 0 1 8 0" />
-                           <!-- Bag body -->
-                           <path d="M5 8h14v12a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V8z" />
-                         </svg>
-                         <p class="hide-on-mobile" style="font-size:{{ block.settings.addToCart_size}}px; color:{{ block.settings.addToCart_color}};">Add to Cart</p>
-                       </button>
-                   </form> 
-               </div>
-       </div>
-     </div>
-     {% endfor %}
-   </div>
- <!-- thumbnail section -->
- <div class="shv-slider-thumbs">
-   {% for product in collection %}
-     <div class="shv-slide">
-         <img src="{{ product.featured_image.src | img_url : 'large'}}" alt="{{ product.featured_image.alt | escape }}" class="thumbnail-img" width="540" height="720" loading="lazy">
-     </div>
-   {% endfor %}
- </div>
- <!-- navigation buttons -->
- <div class="shv-slider-nav">
-     <button id="prev"><</button>
-     <button id="next">></button>
- </div>
- <!-- progress bar -->
- <div class="slider-progress"></div>
-</div>
-
-
-   
-    
-   
-<style>
-
-.shv-slider-wrapper{
-   height: 100vh;
-   /*margin-top: -50px;*/
-   width: 100%;
-   overflow: hidden;
-   position: relative;
-}
-.shv-slider-wrapper .shv-slider-track {
-   overflow: hidden;
-}
-
-
-.shv-slider-wrapper .shv-slider-track .shv-slide{
-   width: 100%;
-   height: 100%;
-   position: absolute;
-   top: 0;
-   left: 0;
-   right: 0;
-   bottom: 0;
-}
-.shv-slider-wrapper .shv-slider-track .shv-slide img{
-   width: 100%;
-   height: 100%;
-   object-fit: cover;
-}
-
-.shv-slider-wrapper .shv-slider-track .shv-slide .shv-slide-content{
-   position: absolute;
-   top: 30%;
-   width: 1140px;
-   max-width: 80%;
-   left: 50%;
-   transform: translateX(-50%);
-   padding-right: 30%;
-   box-sizing: border-box;
-   
-   /*line-height: 1em;*/
-   padding-top: 5%;
-   text-shadow: 0 5px 10px #0004;
-   animation: goDark 3s;
-   
-}
-
-@keyframes goDark{
-   0% {
-       opacity: 0;
-
-   }
-   80% {
-       opacity: 0;
-
-   }
-   100% {
-       opacity: 1;
-   }
-}
-.shv-slider-wrapper .shv-slider-track .shv-slide .shv-slide-meta{
-   font-weight: bold;
-   letter-spacing: 2px;
-}
-.shv-slider-wrapper .shv-slider-track .shv-slide .shv-slide-title,
-.shv-slider-wrapper .shv-slider-track .shv-slide .topic{
-   font-size: 2em;
-   font-weight: bold;
-   /*line-height: 1.3em;*/
-}
-.shv-slider-wrapper .shv-slider-track .shv-slide .topic{
-   color: #f1683a;
-}
-
-/* thumbail */
-.shv-slider-thumbs{
-   position: absolute;
-   bottom: 50px;
-   left: 50%;
-   width: max-content;
-  /* z-index: 100;*/
-   z-index: 10;
-   display: flex;
-   gap: 20px;
-   overflow:hidden;
-}
-.shv-slider-thumbs .shv-slide{
-   width: 150px;
-   height: 220px;
-   flex-shrink: 0;
-   position: relative;
-}
-.shv-slider-thumbs .shv-slide img{
-   width: 100%;
-   height: 100%;
-   object-fit: cover;
-   border-radius: 20px;
-}
-.shv-slider-thumbs .shv-slide .shv-slide-content{
-   color: #fff;
-   position: absolute;
-   bottom: 10px;
-   left: 10px;
-   right: 10px;
-}
-.shv-slider-thumbs .shv-slide .shv-slide-content .shv-slide-title{
-   font-weight: 500;
-}
-.shv-slider-thumbs .shv-slide .shv-slide-content .description{
-   font-weight: 300;
-}
-
-
-
-i.ri-shopping-bag-line {
- font-weight: medium; /* Try different values like 600, 700, 900 */
-}
-
-
-
-
-
-
-
-
-
-/*add to Cart*/
-.shv-add-to-cart-btn {
-   background: transparent; /* Removes background */
-   border: none; /* Removes border if present */
-   padding: 8px 12px; /* Adjust padding if needed */
-   cursor: pointer; /* Ensures clickable behavior */
-   display: flex;
-   align-items: center;
-   justify-content: center;
-}
-
-.shv-add-to-cart-btn i {
-   font-size: 4rem; /* Adjust icon size if needed */
-}
-
-
-
-
-
-
-/* arrows */
-.shv-slider-nav{
-   position: absolute;
-   top: 80%;
-   right: 52%;
-   /*z-index: 100;*/
-   z-index: 10;
-   width: 300px;
-   max-width: 30%;
-   display: flex;
-   gap: 10px;
-   align-items: center;
-}
-.shv-slider-nav button{
-   width: 40px;
-   height: 40px;
-   border-radius: 50%;
-   background-color: #eee4;
-   border: none;
-   color: #fff;
-   font-family: monospace;
-   font-weight: bold;
-   transition: .5s;
-}
-.shv-slider-nav button:hover{
-   background-color: #fff;
-   color: #000;
-}
-
-/* animation */
-.shv-slider-wrapper .shv-slider-track .shv-slide:nth-child(1){
-  /* z-index: 1;*/
-  z-index: 2;
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/* animation text in first item */
-.shv-slider-wrapper .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content {
-   display: flex;
-   flex-direction: column; /* Ensure a vertical layout */
-   align-items: flex-start; /* Align items to the left */
-
-}
-/* General Content Animation */
-.shv-slider-wrapper .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .shv-slide-meta,
-.shv-slider-wrapper .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .shv-slide-title,
-.shv-slider-wrapper .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .topic,
-.shv-slider-wrapper .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .des,
-.shv-slider-wrapper .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .buttons{
-   position: relative;
-   padding: 0px 15px;
-   display: inline-block; /* Prevents full-width expansion */
-   width: auto;
-    /* Prevent full width expansion */
-   transform: translateY(50px);
-   filter: blur(20px);
-   opacity: 0;
-   animation: showContent 0.5s 1s linear 1 forwards  !important;
-   animation-fill-mode: forwards;
-   overflow: hidden;
-   
-}
-
-/* Background Animation */
-.shv-slider-wrapper .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .shv-slide-meta::before,
-.shv-slider-wrapper .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .shv-slide-title::before,
-.shv-slider-wrapper .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .topic::before,
-.shv-slider-wrapper .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .des::before,
-.shv-slider-wrapper .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .buttons::before {
-   content: "";
-   position: absolute;
-   clip-path: polygon(10% 0%, 100% 0%, 90% 100%, 0% 100%);
-   top: 0;
-   left: -100%;
-   width: 100%; /* Initially hidden */
-   height: 100%;
-   /*background-color: rgba(0, 0, 255, 0.5); /* Blue overlay (change as needed) */
-   background: linear-gradient(to right,{{ block.settings.gradient_color_start }}80 100%, {{ block.settings.gradient_color_end }}1A 100%);
-   z-index: -1; /* Keep it behind the text */
-   animation: bgAnimate 0.8s ease-in-out 0.8s forwards;
-   animation-fill-mode: forwards;
-
-   /*clip-path: polygon(10% 0%, 100% 0%, 90% 100%, 0% 100%);*/
-   /*clip-path: polygon(0% 0%, 100% 0%, 90% 100%, 0% 100%);*/
-}
-
-/* Keyframes for Background Animation */
-@keyframes bgAnimate {
-   to {
-       left:0;
-
-   }
-}
-
-/* Show Content Keyframes */
-@keyframes showContent {
-   to {
-       transform: translateY(0px);
-       filter: blur(0px);
-       opacity: 1;
-   }
-}
-
-/* Individual Animation Delays */
-.shv-slider-wrapper .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .shv-slide-title {
-   animation-delay: 1.2s!important;
-}
-.shv-slider-wrapper .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .topic {
-   animation-delay: 1.4s!important;
-}
-.shv-slider-wrapper .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .des {
-   animation-delay: 1.6s!important;
-}
-.shv-slider-wrapper .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .buttons {
-   animation-delay: 1.8s!important;
-}
-
-
-.shv-slider-wrapper .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .shv-slide-title::before {
-   animation-delay: 1.4s!important;
-}
-.shv-slider-wrapper .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .topic::before {
-   animation-delay: 1.6s!important;
-}
-.shv-slider-wrapper .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .des::before {
-   animation-delay: 2s!important;
-}
-.shv-slider-wrapper .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .buttons::before {
-   animation-delay: 1.6s!important;
-}
-
-
-
-
-
-
-
-
-
-/* create animation when next click */
-.shv-slider-wrapper.next .shv-slider-track .shv-slide:nth-child(1) img{
-   width: 150px;
-   height: 220px;
-   position: absolute;
-   bottom: 50px;
-   left: 50%;
-   border-radius: 30px;
-   animation: showImage .5s linear 1 forwards;
-}
-@keyframes showImage{
-   to{
-       bottom: 0;
-       left: 0;
-       width: 100%;
-       height: 100%;
-       border-radius: 0;
-   }
-}
-
-.shv-slider-wrapper.next .shv-slider-thumbs .shv-slide:nth-last-child(1){
-   overflow: hidden;
-   animation: showThumbnail .5s linear 1 forwards;
-}
-.shv-slider-wrapper.prev .shv-slider-track .shv-slide img{
-   z-index: 100;
-}
-@keyframes showThumbnail{
-   from{
-       width: 0;
-       opacity: 0;
-   }
-}
-.shv-slider-wrapper.next .shv-slider-thumbs{
-   animation: effectNext .5s linear 1 forwards;
-}
-
-@keyframes effectNext{
-   from{
-       transform: translateX(150px);
-   }
-}
-
-/* running time */
-
-.shv-slider-wrapper .time{
-   position: absolute;
-   z-index: 1000;
-   width: 0%;
-   height: 3px;
-   background-color: #f1683a;
-   left: 0;
-   top: 0;
-}
-
-.shv-slider-wrapper.next .time,
-.shv-slider-wrapper.prev .time{
-   animation: runningTime 3s linear 1 forwards;
-}
-@keyframes runningTime{
-   from{ width: 100%}
-   to{width: 0}
-}
-
-
-/* prev click */
-
-.shv-slider-wrapper.prev .shv-slider-track .shv-slide:nth-child(2){
-   z-index: 2;
-}
-
-.shv-slider-wrapper.prev .shv-slider-track .shv-slide:nth-child(2) img{
-   animation: outFrame 0.5s linear 1 forwards;
-   position: absolute;
-   bottom: 0;
-   left: 0;
-}
-@keyframes outFrame{
-   to{
-       width: 150px;
-       height: 220px;
-       bottom: 50px;
-       left: 50%;
-       border-radius: 20px;
-   }
-}
-
-.shv-slider-wrapper.prev .shv-slider-thumbs .shv-slide:nth-child(1){
-   overflow: hidden;
-   opacity: 0;
-   animation: showThumbnail .5s linear 1 forwards;
-}
-.shv-slider-wrapper.next .shv-slider-nav button,
-.shv-slider-wrapper.prev .shv-slider-nav button{
-   pointer-events: none;
-}
-.shv-slider-wrapper.prev .shv-slider-track .shv-slide:nth-child(2) .shv-slide-content .shv-slide-meta,
-.shv-slider-wrapper.prev .shv-slider-track .shv-slide:nth-child(2) .shv-slide-content .shv-slide-title,
-.shv-slider-wrapper.prev .shv-slider-track .shv-slide:nth-child(2) .shv-slide-content .topic,
-.shv-slider-wrapper.prev .shv-slider-track .shv-slide:nth-child(2) .shv-slide-content .des,
-.shv-slider-wrapper.prev .shv-slider-track .shv-slide:nth-child(2) .shv-slide-content .buttons
-{
-   animation: contentOut 1.5s linear 1 forwards!important;
-}
-
-@keyframes contentOut{
-   to{
-       transform: translateY(-150px);
-       filter: blur(20px);
-       opacity: 0;
-   }
-}
-@media screen and (max-width: 678px) {
-   .shv-slider-wrapper .shv-slider-track .shv-slide .shv-slide-content{
-       padding-right: 0;
-   }
-   .shv-slider-wrapper .shv-slider-track .shv-slide .shv-slide-content .shv-slide-title{
-       font-size: 30px;
-   }
-
- .hide-on-mobile {
-   display: none;
- }
-
-}
-</style>    
-<script>
-   //step 1: get DOM
-let nextDom = document.getElementById('next');
-let prevDom = document.getElementById('prev');
-
-let carouselDom = document.querySelector('.shv-slider-wrapper');
-let SliderDom = carouselDom.querySelector('.shv-slider-wrapper .shv-slider-track');
-let thumbnailBorderDom = document.querySelector('.shv-slider-wrapper .shv-slider-thumbs');
-let thumbnailItemsDom = thumbnailBorderDom.querySelectorAll('.shv-slide');
-let timeDom = document.querySelector('.shv-slider-wrapper .time');
-
-thumbnailBorderDom.appendChild(thumbnailItemsDom[0]);
-let timeRunning = 3000;
-let timeAutoNext = 7000;
-
-nextDom.onclick = function(){
-   showSlider('next');    
-}
-
-prevDom.onclick = function(){
-   showSlider('prev');    
-}
-let runTimeOut;
-let runNextAuto = setTimeout(() => {
-   next.click();
-}, timeAutoNext)
-function showSlider(type){
-   let  SliderItemsDom = SliderDom.querySelectorAll('.shv-slider-wrapper .shv-slider-track .shv-slide');
-   let thumbnailItemsDom = document.querySelectorAll('.shv-slider-wrapper .shv-slider-thumbs .shv-slide');
-   
-   if(type === 'next'){
-       SliderDom.appendChild(SliderItemsDom[0]);
-       thumbnailBorderDom.appendChild(thumbnailItemsDom[0]);
-       carouselDom.classList.add('next');
-   }else{
-       SliderDom.prepend(SliderItemsDom[SliderItemsDom.length - 1]);
-       thumbnailBorderDom.prepend(thumbnailItemsDom[thumbnailItemsDom.length - 1]);
-       carouselDom.classList.add('prev');
-   }
-   clearTimeout(runTimeOut);
-   runTimeOut = setTimeout(() => {
-       carouselDom.classList.remove('next');
-       carouselDom.classList.remove('prev');
-   }, timeRunning);
-
-   clearTimeout(runNextAuto);
-   runNextAuto = setTimeout(() => {
-       next.click();
-   }, timeAutoNext)
-}
-</script>    
-
-
-{% schema %}
-   {
-     "name": "Carousel Slider",
-     "target": "section",
-     "settings": [
-       {
-         "type": "collection",
-         "id": "selected_collection",
-         "label": "Select Collection",
-       },
-       {
-         "type": "color",
-         "id": "text_color",
-         "label": "Product Color",
-         "default": "#ffffff"
-       },
-       {
-         "type": "range",
-         "id": "font_size",
-         "label": "Font Size",
-         "min": 10,
-         "max": 50,
-         "step": 1,
-         "default": 20,
-         "unit": "px"
-       },
-       {
-        "type": "range",
-         "id": "font_weight",
-         "label": "Font Weight",
-         "min": 100,
-         "max": 900,
-         "step": 100,
-         "default": 400
-
-       },
-       {
-           "type": "color",
-           "id": "text_color2",
-           "label": "Price Text Color",
-           "default": "#ffffff"
-         },
-         {
-         "type": "range",
-         "id": "font_size1",
-         "label": "Font Size",
-         "min": 10,
-         "max": 50,
-         "step": 1,
-         "default": 20,
-         "unit": "px"
-          },
-          {
-         "type": "range",
-         "id": "font_weight1",
-         "label": "Font Weight",
-         "min": 100,
-         "max": 900,
-         "step": 100,
-         "default": 400
-         },
-         {
-           "type": "color",
-           "id": "icon_color",
-           "label": "Shopping bag Color",
-           "default": "#ffffff"
-         },
-         {
-           "type": "range",
-           "id": "icon_thickness",
-           "label": "Icon Thickness",
-           "min": 1,
-           "max": 5,
-           "step": 0.1,
-           "default": 1.2
-           },
-           {
-           "type": "range",
-           "id": "icon_size",
-           "label": "Icon Size",
-           "min": 20,
-           "max": 100,
-           "step": 5,
-           "default": 30
-           }, 
-           {
-           "type": "range",
-           "id": "addToCart_size",
-           "label": "Add To Cart font Size",
-           "min": 20,
-           "max": 100,
-           "step": 5,
-           "default":20
-           }, 
-           {
-           "type": "color",
-           "id": "addToCart_color",
-           "label": "Add to Cart Color",
-           "default": "#ffffff",
-           "info": "Choose the color of the add to cart word"
-           },
-           {
-           "type": "color",
-           "id": "gradient_color_start",
-           "label": "Gradient Start Color",
-           "default": "#000000",
-           "info": "Choose the start color for the gradient."
-           },
-           {
-           "type": "color",
-           "id": "gradient_color_end",
-           "label": "Gradient End Color",
-           "default": "#000000",
-           "info": "Choose the end color for the gradient."
-           }
-
-     ]
-   }
-   {% endschema %}
-    {% endcomment %}
-
-
-
-
-
-<link  href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css" rel="stylesheet"/>
- 
- 
-{% if block.settings.selected_collection != blank %}
-   {% assign collection = collections[block.settings.selected_collection].products %}
- {% else %}
-   {% assign collection = collections.all.products %}
- {% endif %}
+{% endif %}
 
 {% assign section_id = 'shv-carousel-' | append: section.id %}
 
 <div class="shv-slider-wrapper" id="{{ section_id }}">
  <!-- list item -->
+ <!-- ASPECT RATIO START -->
  <div class="shv-slider-track">
    {% for product in collection %} 
-     <div class="shv-slide">
-         <img src="{{ product.featured_image.src | img_url: 'master' }}" alt="{{ product.featured_image.alt | escape }}" class="slider-img" width="540" height="720" loading="lazy">
+     <div class="shv-slide" data-aspect-ratio="{{ product.featured_image.aspect_ratio }}">
+         <div class="image-container">
+             <img src="{{ product.featured_image.src | img_url: 'master' }}" 
+                  alt="{{ product.featured_image.alt | escape }}" 
+                  class="slider-img" 
+                  width="{{ product.featured_image.width }}" 
+                  height="{{ product.featured_image.height }}" 
+                  loading="lazy">
+         </div>
          <div class="shv-slide-content">
                <div class="shv-slide-meta">
                  <a href="{{ product.url }}" 
-                 style="color: {{ block.settings.text_color }};
-                  text-decoration: none !important;
-                  font-size:{{ block.settings.font_size}}px;
-                  font-weight:{{ block.settings.font_weight}}">
-                  {{ product.title }}
-                  </a>
+                    style="color: {{ block.settings.text_color }};
+                    text-decoration: none !important;
+                    font-size:{{ block.settings.font_size}}px;
+                    font-weight:{{ block.settings.font_weight}}">
+                    {{ product.title }}
+                 </a>
                </div>
                <div class="shv-slide-title">
                 <span class="price-span" 
-                style="color: {{ block.settings.text_color2 }};
-                 font-size:{{ block.settings.font_size1}}px;
-                 font-weight:{{ block.settings.font_weight1}}">
+                      style="color: {{ block.settings.text_color2 }};
+                      font-size:{{ block.settings.font_size1}}px;
+                      font-weight:{{ block.settings.font_weight1}}">
                   {{ product.price | money }}
-               </span>
+                </span>
                </div>
                <div class="buttons">
                    <form action="/cart/add" method="post" enctype="multipart/form-data" onsubmit="submitAddToCartForm_{{ section.id }}(this); return false;">
                        <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}">
                        <button type="submit" class="shv-add-to-cart-btn" aria-label="add to cart" style="display: flex !important; align-items: center !important; gap: 8px !important; padding: 8px 12px !important; border: none !important; background: none !important; cursor: pointer !important;">
                          <svg width="{{ block.settings.icon_size }}" height="{{ block.settings.icon_size }}" viewBox="0 0 24 24" fill="none"
-                           stroke="{{  block.settings.icon_color}}" 
+                           stroke="{{ block.settings.icon_color}}" 
                            stroke-width="{{ block.settings.icon_thickness}}" 
                            stroke-linecap="round" stroke-linejoin="round">
                            <!-- Bag handles (curving downward, floating above the bag) -->
@@ -734,12 +62,18 @@ function showSlider(type){
        </div>
      </div>
      {% endfor %}
-   </div>
+ </div>
+ <!-- ASPECT RATIO END -->
  <!-- thumbnail section -->
  <div class="shv-slider-thumbs">
    {% for product in collection %}
      <div class="shv-slide">
-         <img src="{{ product.featured_image.src | img_url : 'large'}}" alt="{{ product.featured_image.alt | escape }}" class="thumbnail-img" width="540" height="720" loading="lazy">
+         <img src="{{ product.featured_image.src | img_url: 'large' }}" 
+              alt="{{ product.featured_image.alt | escape }}" 
+              class="thumbnail-img" 
+              width="540" 
+              height="720" 
+              loading="lazy">
      </div>
    {% endfor %}
  </div>
@@ -772,11 +106,14 @@ function showSlider(type){
 
 #{{ section_id }} .shv-slider-track {
    overflow: hidden;
+   width: 100%;
+   height: 100%;
+   position: relative;
 }
 
 #{{ section_id }} .shv-slider-track .shv-slide {
    width: 100%;
-   height: 100%;
+   height: 100vh;
    position: absolute;
    top: 0;
    left: 0;
@@ -784,14 +121,32 @@ function showSlider(type){
    bottom: 0;
 }
 
-#{{ section_id }} .shv-slider-track .shv-slide img {
+/* ASPECT RATIO START */
+#{{ section_id }} .shv-slider-track .shv-slide .image-container {
+   position: absolute;
+   top: 50%;
+   left: 50%;
+   transform: translate(-50%, -50%);
+   transition: all 0.3s ease-out;
+   display: flex;
+   align-items: center;
+   justify-content: center;
    width: 100%;
    height: 100%;
-   object-fit: cover;
+}
+
+#{{ section_id }} .shv-slider-track .shv-slide img {
+   width: auto;
+   height: auto;
+   max-width: 100%;
+   max-height: 100%;
+   object-fit: {{ block.settings.image_fit | default: 'contain' }};
+   object-position: center;
    display: block;
    border: none;
    outline: none;
 }
+/* ASPECT RATIO END */
 
 #{{ section_id }} .shv-slider-track .shv-slide .shv-slide-content {
    position: absolute;
@@ -805,18 +160,14 @@ function showSlider(type){
    padding-top: 5%;
    text-shadow: 0 5px 10px rgba(0,0,0,0.267);
    animation: goDark 3s;
+   opacity: 0; /* Hide all content by default */
+   visibility: hidden; /* Ensure it's not visible */
 }
 
-@keyframes goDark{
-   0% {
-       opacity: 0;
-   }
-   80% {
-       opacity: 0;
-   }
-   100% {
-       opacity: 1;
-   }
+@keyframes goDark {
+   0% { opacity: 0; }
+   80% { opacity: 0; }
+   100% { opacity: 1; }
 }
 
 #{{ section_id }} .shv-slider-track .shv-slide .shv-slide-meta {
@@ -879,7 +230,7 @@ function showSlider(type){
    font-weight: 300;
 }
 
-/*add to Cart*/
+/* add to Cart */
 #{{ section_id }} .shv-add-to-cart-btn {
    background: transparent !important;
    border: none !important;
@@ -935,21 +286,30 @@ function showSlider(type){
 
 /* animation */
 #{{ section_id }}.next .shv-slider-track .shv-slide:nth-child(1) {
-  z-index: 2;
+   z-index: 2;
 }
 
 #{{ section_id }} .shv-slider-track .shv-slide:nth-child(1) {
-  z-index: 2;
+   z-index: 2;
 }
 
-/* animation text in first item */
+/* Show content only for the first (active) slide */
 #{{ section_id }} .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content {
    display: flex;
    flex-direction: column;
    align-items: flex-start;
+   opacity: 1 !important; /* Make visible for active slide */
+   visibility: visible !important; /* Make visible for active slide */
 }
 
-/* General Content Animation */
+/* Hide content for all other slides */
+#{{ section_id }} .shv-slider-track .shv-slide:not(:nth-child(1)) .shv-slide-content {
+   opacity: 0 !important;
+   visibility: hidden !important;
+   display: none !important; /* Completely hide background content */
+}
+
+/* General Content Animation for active slide only */
 #{{ section_id }} .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .shv-slide-meta,
 #{{ section_id }} .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .shv-slide-title,
 #{{ section_id }} .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .topic,
@@ -975,12 +335,12 @@ function showSlider(type){
 #{{ section_id }} .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .buttons::before {
    content: "";
    position: absolute;
-   clip-path: polygon(10% 0%, 100% 0%, 90% 100%, 0% 100%);
+ /*  clip-path: polygon(10% 0%, 100% 0%, 90% 100%, 0% 100%);*/
    top: 0;
    left: -100%;
    width: 100%;
    height: 100%;
-   background: linear-gradient(to right,{{ block.settings.gradient_color_start }}80 100%, {{ block.settings.gradient_color_end }}1A 100%);
+   background: linear-gradient(to right, {{ block.settings.gradient_color_start }}80 100%, {{ block.settings.gradient_color_end }}1A 100%);
    z-index: -1;
    animation: bgAnimate-{{ section.id }} 0.8s ease-in-out 0.8s forwards;
    animation-fill-mode: forwards;
@@ -1029,34 +389,56 @@ function showSlider(type){
    animation-delay: 1.6s !important;
 }
 
-/* create animation when next click */
-#{{ section_id }}.next .shv-slider-track .shv-slide:nth-child(1) img {
+/* ASPECT RATIO START */
+#{{ section_id }}.next .shv-slider-track .shv-slide:nth-child(1) .image-container {
    width: 150px;
    height: 220px;
    position: absolute;
    bottom: 50px;
    left: 50%;
+   transform: translateX(-50%);
    border-radius: 30px;
    animation: showImage-{{ section.id }} .5s linear 1 forwards;
 }
 
 @keyframes showImage-{{ section.id }} {
    to {
-       bottom: 0;
-       left: 0;
+       bottom: 50%;
+       left: 50%;
        width: 100%;
        height: 100%;
        border-radius: 0;
+       transform: translate(-50%, -50%);
    }
+}
+
+#{{ section_id }}.prev .shv-slider-track .shv-slide:nth-child(2) .image-container {
+   animation: outFrame-{{ section.id }} .5s linear 1 forwards;
+   position: absolute;
+   bottom: 50%;
+   left: 50%;
+   transform: translate(-50%, -50%);
+}
+
+@keyframes outFrame-{{ section.id }} {
+   to {
+       width: 150px;
+       height: 220px;
+       bottom: 50px;
+       left: 50%;
+       border-radius: 20px;
+       transform: translateX(-50%);
+   }
+}
+/* ASPECT RATIO END */
+
+#{{ section_id }}.prev .shv-slider-track .shv-slide img {
+   z-index: 100;
 }
 
 #{{ section_id }}.next .shv-slider-thumbs .shv-slide:nth-last-child(1) {
    overflow: hidden;
    animation: showThumbnail-{{ section.id }} .5s linear 1 forwards;
-}
-
-#{{ section_id }}.prev .shv-slider-track .shv-slide img {
-   z-index: 100;
 }
 
 @keyframes showThumbnail-{{ section.id }} {
@@ -1102,32 +484,16 @@ function showSlider(type){
    z-index: 2;
 }
 
-#{{ section_id }}.prev .shv-slider-track .shv-slide:nth-child(2) img {
-   animation: outFrame-{{ section.id }} 0.5s linear 1 forwards;
-   position: absolute;
-   bottom: 0;
-   left: 0;
-}
-
-@keyframes outFrame-{{ section.id }} {
-   to {
-       width: 150px;
-       height: 220px;
-       bottom: 50px;
-       left: 50%;
-       border-radius: 20px;
-   }
-}
-
-#{{ section_id }}.prev .shv-slider-thumbs .shv-slide:nth-child(1) {
-   overflow: hidden;
-   opacity: 0;
-   animation: showThumbnail-{{ section.id }} .5s linear 1 forwards;
-}
-
 #{{ section_id }}.next .shv-slider-nav button,
 #{{ section_id }}.prev .shv-slider-nav button {
    pointer-events: none;
+}
+
+/* Show content for second slide during prev animation */
+#{{ section_id }}.prev .shv-slider-track .shv-slide:nth-child(2) .shv-slide-content {
+   opacity: 1 !important;
+   visibility: visible !important;
+   display: flex !important;
 }
 
 #{{ section_id }}.prev .shv-slider-track .shv-slide:nth-child(2) .shv-slide-content .shv-slide-meta,
@@ -1150,11 +516,47 @@ function showSlider(type){
    #{{ section_id }} .shv-slider-track .shv-slide .shv-slide-content {
        padding-right: 0;
    }
-   #{{ section_id }} .shv-slider-track .shv-slide .shv-slide-content .shv-slide-title {
+   #{{ section_id }} .shv-slider-track .shv-slide .shv-slide-title {
        font-size: 30px;
    }
    #{{ section_id }} .hide-on-mobile {
        display: none !important;
+   }
+   
+   /* Disable aspect ratio animations on mobile */
+   #{{ section_id }}.next .shv-slider-track .shv-slide:nth-child(1) .image-container {
+       animation: none !important;
+       width: 100% !important;
+       height: 100% !important;
+       position: absolute !important;
+       top: 50% !important;
+       left: 50% !important;
+       transform: translate(-50%, -50%) !important;
+       border-radius: 0 !important;
+       bottom: auto !important;
+   }
+   
+   #{{ section_id }}.prev .shv-slider-track .shv-slide:nth-child(2) .image-container {
+       animation: none !important;
+       width: 100% !important;
+       height: 100% !important;
+       position: absolute !important;
+       top: 50% !important;
+       left: 50% !important;
+       transform: translate(-50%, -50%) !important;
+       border-radius: 0 !important;
+       bottom: auto !important;
+   }
+   
+   /* Keep normal image positioning on mobile */
+   #{{ section_id }} .shv-slider-track .shv-slide .image-container {
+       width: 100% !important;
+       height: 100% !important;
+       position: absolute !important;
+       top: 50% !important;
+       left: 50% !important;
+       transform: translate(-50%, -50%) !important;
+       border-radius: 0 !important;
    }
 }
 </style>
@@ -1225,8 +627,6 @@ function showSlider(type){
 
    // Scoped add to cart function
    window['submitAddToCartForm_' + sectionId] = function(form) {
-       // Add your cart submission logic here
-       // This is a placeholder - implement according to your theme's cart functionality
        fetch('/cart/add.js', {
            method: 'POST',
            headers: {
@@ -1236,7 +636,6 @@ function showSlider(type){
        }).then(response => response.json())
          .then(data => {
              console.log('Product added to cart:', data);
-             // Add success feedback here
          })
          .catch(error => {
              console.error('Error adding to cart:', error);
@@ -1246,121 +645,139 @@ function showSlider(type){
 </script>
 
 {% schema %}
-   {
-     "name": "Carousel Slider",
-     "target": "section",
-     "settings": [
-       {
-         "type": "collection",
-         "id": "selected_collection",
-         "label": "Select Collection"
-       },
-       {
-         "type": "color",
-         "id": "text_color",
-         "label": "Text Color",
-         "default": "#ffffff"
-       },
-       {
-         "type": "range",
-         "id": "font_size",
-         "label": "Font Size",
-         "min": 10,
-         "max": 50,
-         "step": 1,
-         "default": 20,
-         "unit": "px"
-       },
-       {
-        "type": "range",
-         "id": "font_weight",
-         "label": "Font Weight",
-         "min": 100,
-         "max": 900,
-         "step": 100,
-         "default": 400
-
-       },
-       {
-           "type": "color",
-           "id": "text_color2",
-           "label": "Price Text Color",
-           "default": "#ffffff"
-         },
-         {
-         "type": "range",
-         "id": "font_size1",
-         "label": "Font Size",
-         "min": 10,
-         "max": 50,
-         "step": 1,
-         "default": 20,
-         "unit": "px"
-          },
-          {
-         "type": "range",
-         "id": "font_weight1",
-         "label": "Font Weight",
-         "min": 100,
-         "max": 900,
-         "step": 100,
-         "default": 400
-         },
-         {
-           "type": "color",
-           "id": "icon_color",
-           "label": "Shopping bag Color",
-           "default": "#ffffff"
-         },
-         {
-           "type": "range",
-           "id": "icon_thickness",
-           "label": "Icon Thickness",
-           "min": 1,
-           "max": 5,
-           "step": 0.1,
-           "default": 1.2
-           },
-           {
-           "type": "range",
-           "id": "icon_size",
-           "label": "Icon Size",
-           "min": 20,
-           "max": 100,
-           "step": 5,
-           "default": 30
-           }, 
-           {
-           "type": "range",
-           "id": "addToCart_size",
-           "label": "Add To Cart font Size",
-           "min": 20,
-           "max": 100,
-           "step": 5,
-           "default":20
-           }, 
-           {
-           "type": "color",
-           "id": "addToCart_color",
-           "label": "Add to Cart Color",
-           "default": "#ffffff",
-           "info": "Choose the color of the add to cart word"
-           },
-           {
-           "type": "color",
-           "id": "gradient_color_start",
-           "label": "Gradient Start Color",
-           "default": "#000000",
-           "info": "Choose the start color for the gradient."
-           },
-           {
-           "type": "color",
-           "id": "gradient_color_end",
-           "label": "Gradient End Color",
-           "default": "#000000",
-           "info": "Choose the end color for the gradient."
-           }
-
-     ]
-   }
-   {% endschema %}     
+{
+  "name": "Carousel Slider",
+  "target": "section",
+  "settings": [
+    {
+      "type": "collection",
+      "id": "selected_collection",
+      "label": "Select Collection"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text Color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "range",
+      "id": "font_size",
+      "label": "Font Size",
+      "min": 10,
+      "max": 50,
+      "step": 1,
+      "default": 20,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "font_weight",
+      "label": "Font Weight",
+      "min": 100,
+      "max": 900,
+      "step": 100,
+      "default": 400
+    },
+    {
+      "type": "color",
+      "id": "text_color2",
+      "label": "Price Text Color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "range",
+      "id": "font_size1",
+      "label": "Price Font Size",
+      "min": 10,
+      "max": 50,
+      "step": 1,
+      "default": 20,
+      "unit": "px"
+    },
+    {
+      "type": "range",
+      "id": "font_weight1",
+      "label": "Price Font Weight",
+      "min": 100,
+      "max": 900,
+      "step": 100,
+      "default": 400
+    },
+    {
+      "type": "select",
+      "id": "image_fit",
+      "label": "Image Fit",
+      "options": [
+        {
+          "value": "contain",
+          "label": "Contain"
+        },
+        {
+          "value": "cover",
+          "label": "Cover"
+        },
+        {
+          "value": "fill",
+          "label": "Fill"
+        }
+      ],
+      "default": "contain"
+    },
+    {
+      "type": "color",
+      "id": "icon_color",
+      "label": "Shopping Bag Color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "range",
+      "id": "icon_thickness",
+      "label": "Icon Thickness",
+      "min": 1,
+      "max": 5,
+      "step": 0.1,
+      "default": 1.2
+    },
+    {
+      "type": "range",
+      "id": "icon_size",
+      "label": "Icon Size",
+      "min": 20,
+      "max": 100,
+      "step": 5,
+      "default": 30
+    }, 
+    {
+      "type": "range",
+      "id": "addToCart_size",
+      "label": "Add To Cart Font Size",
+      "min": 20,
+      "max": 100,
+      "step": 5,
+      "default": 20
+    }, 
+    {
+      "type": "color",
+      "id": "addToCart_color",
+      "label": "Add to Cart Color",
+      "default": "#ffffff",
+      "info": "Choose the color of the add to cart text"
+    },
+    {
+      "type": "color",
+      "id": "gradient_color_start",
+      "label": "Gradient Start Color",
+      "default": "#000000",
+      "info": "Choose the start color for the gradient."
+    },
+    {
+      "type": "color",
+      "id": "gradient_color_end",
+      "label": "Gradient End Color",
+      "default": "#000000",
+      "info": "Choose the end color for the gradient."
+    }
+  ]
+}
+{% endschema %}
