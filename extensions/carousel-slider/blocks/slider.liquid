@@ -10,18 +10,15 @@
 
 <div class="shv-slider-wrapper" id="{{ section_id }}">
  <!-- list item -->
- <!-- ASPECT RATIO START -->
  <div class="shv-slider-track">
    {% for product in collection %} 
-     <div class="shv-slide" data-aspect-ratio="{{ product.featured_image.aspect_ratio }}">
-         <div class="image-container">
-             <img src="{{ product.featured_image.src | img_url: 'master' }}" 
-                  alt="{{ product.featured_image.alt | escape }}" 
-                  class="slider-img" 
-                  width="{{ product.featured_image.width }}" 
-                  height="{{ product.featured_image.height }}" 
-                  loading="lazy">
-         </div>
+     <div class="shv-slide">
+         <img src="{{ product.featured_image.src | img_url: 'master' }}" 
+              alt="{{ product.featured_image.alt | escape }}" 
+              class="slider-img" 
+              width="{{ product.featured_image.width }}" 
+              height="{{ product.featured_image.height }}" 
+              loading="lazy">
          <div class="shv-slide-content">
                <div class="shv-slide-meta">
                  <a href="{{ product.url }}" 
@@ -48,11 +45,8 @@
                            stroke="{{ block.settings.icon_color}}" 
                            stroke-width="{{ block.settings.icon_thickness}}" 
                            stroke-linecap="round" stroke-linejoin="round">
-                           <!-- Bag handles (curving downward, floating above the bag) -->
                            <path d="M9 11a3 3 0 0 0 6 0" />
-                           <!-- Outer bag handles -->
                            <path d="M8 6.5a4 4 0 0 1 8 0" />
-                           <!-- Bag body -->
                            <path d="M5 8h14v12a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V8z" />
                          </svg>
                          <p class="hide-on-mobile" style="font-size:{{ block.settings.addToCart_size}}px !important; color:{{ block.settings.addToCart_color}} !important; margin: 0 !important; padding: 0 !important;">Add to Cart</p>
@@ -63,7 +57,6 @@
      </div>
      {% endfor %}
  </div>
- <!-- ASPECT RATIO END -->
  <!-- thumbnail section -->
  <div class="shv-slider-thumbs">
    {% for product in collection %}
@@ -113,40 +106,53 @@
 
 #{{ section_id }} .shv-slider-track .shv-slide {
    width: 100%;
-   height: 100vh;
+   height: 100%;
    position: absolute;
    top: 0;
    left: 0;
    right: 0;
    bottom: 0;
+   display: flex;
+   align-items: center;
+   justify-content: center;
 }
 
-/* ASPECT RATIO START */
-#{{ section_id }} .shv-slider-track .shv-slide .image-container {
+#{{ section_id }} .shv-slider-track .shv-slide .slider-img {
+   width: 100%;
+   height: 100%;
+   object-fit: cover;
+   display: block;
+   border: none;
+   outline: none;
    position: absolute;
    top: 50%;
    left: 50%;
    transform: translate(-50%, -50%);
-   transition: all 0.3s ease-out;
-   display: flex;
-   align-items: center;
-   justify-content: center;
-   width: 100%;
-   height: 100%;
 }
 
-#{{ section_id }} .shv-slider-track .shv-slide img {
-   width: auto;
-   height: auto;
-   max-width: 100%;
-   max-height: 100%;
-   object-fit: {{ block.settings.image_fit | default: 'contain' }};
-   object-position: center;
-   display: block;
-   border: none;
-   outline: none;
+/* Large screen aspect ratio */
+@media screen and (min-width: 1024px) {
+   #{{ section_id }} .shv-slider-track .shv-slide .slider-img {
+       aspect-ratio: {{ block.settings.aspect_ratio_large }};
+       object-fit: {{ block.settings.image_fit_large }};
+   }
 }
-/* ASPECT RATIO END */
+
+/* Medium screen aspect ratio */
+@media screen and (min-width: 678px) and (max-width: 1023px) {
+   #{{ section_id }} .shv-slider-track .shv-slide .slider-img {
+       aspect-ratio: {{ block.settings.aspect_ratio_medium }};
+       object-fit: {{ block.settings.image_fit_medium }};
+   }
+}
+
+/* Small screen aspect ratio */
+@media screen and (max-width: 677px) {
+   #{{ section_id }} .shv-slider-track .shv-slide .slider-img {
+       aspect-ratio: {{ block.settings.aspect_ratio_small }};
+       object-fit: {{ block.settings.image_fit_small }};
+   }
+}
 
 #{{ section_id }} .shv-slider-track .shv-slide .shv-slide-content {
    position: absolute;
@@ -160,8 +166,7 @@
    padding-top: 5%;
    text-shadow: 0 5px 10px rgba(0,0,0,0.267);
    animation: goDark 3s;
-   opacity: 0; /* Hide all content by default */
-   visibility: hidden; /* Ensure it's not visible */
+   z-index: 4;
 }
 
 @keyframes goDark {
@@ -285,10 +290,6 @@
 }
 
 /* animation */
-#{{ section_id }}.next .shv-slider-track .shv-slide:nth-child(1) {
-   z-index: 2;
-}
-
 #{{ section_id }} .shv-slider-track .shv-slide:nth-child(1) {
    z-index: 2;
 }
@@ -298,18 +299,18 @@
    display: flex;
    flex-direction: column;
    align-items: flex-start;
-   opacity: 1 !important; /* Make visible for active slide */
-   visibility: visible !important; /* Make visible for active slide */
+   opacity: 1 !important;
+   visibility: visible !important;
 }
 
 /* Hide content for all other slides */
 #{{ section_id }} .shv-slider-track .shv-slide:not(:nth-child(1)) .shv-slide-content {
    opacity: 0 !important;
    visibility: hidden !important;
-   display: none !important; /* Completely hide background content */
+   display: none !important;
 }
 
-/* General Content Animation for active slide only */
+/* General Content Animation */
 #{{ section_id }} .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .shv-slide-meta,
 #{{ section_id }} .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .shv-slide-title,
 #{{ section_id }} .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .topic,
@@ -335,7 +336,6 @@
 #{{ section_id }} .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .buttons::before {
    content: "";
    position: absolute;
- /*  clip-path: polygon(10% 0%, 100% 0%, 90% 100%, 0% 100%);*/
    top: 0;
    left: -100%;
    width: 100%;
@@ -389,35 +389,35 @@
    animation-delay: 1.6s !important;
 }
 
-/* ASPECT RATIO START */
-#{{ section_id }}.next .shv-slider-track .shv-slide:nth-child(1) .image-container {
+/* SMOOTH Image slide-in animation for NEXT */
+#{{ section_id }}.next .shv-slider-track .shv-slide:nth-child(1) .slider-img {
    width: 150px;
    height: 220px;
    position: absolute;
    bottom: 50px;
    left: 50%;
-   transform: translateX(-50%);
    border-radius: 30px;
-   animation: showImage-{{ section.id }} .5s linear 1 forwards;
+   transform: translateX(-50%);
+   animation: showImage-{{ section.id }} 0.5s linear 1 forwards;
+   z-index: 3;
 }
 
 @keyframes showImage-{{ section.id }} {
    to {
-       bottom: 50%;
+       top: 50%;
        left: 50%;
+       transform: translate(-50%, -50%);
        width: 100%;
        height: 100%;
+       bottom: auto;
        border-radius: 0;
-       transform: translate(-50%, -50%);
    }
 }
 
-#{{ section_id }}.prev .shv-slider-track .shv-slide:nth-child(2) .image-container {
-   animation: outFrame-{{ section.id }} .5s linear 1 forwards;
-   position: absolute;
-   bottom: 50%;
-   left: 50%;
-   transform: translate(-50%, -50%);
+/* SMOOTH Image slide-out animation for PREV */
+#{{ section_id }}.prev .shv-slider-track .shv-slide:nth-child(2) .slider-img {
+   animation: outFrame-{{ section.id }} 0.5s linear 1 forwards;
+   z-index: 3;
 }
 
 @keyframes outFrame-{{ section.id }} {
@@ -425,20 +425,16 @@
        width: 150px;
        height: 220px;
        bottom: 50px;
+       top: auto;
        left: 50%;
-       border-radius: 20px;
        transform: translateX(-50%);
+       border-radius: 20px;
    }
-}
-/* ASPECT RATIO END */
-
-#{{ section_id }}.prev .shv-slider-track .shv-slide img {
-   z-index: 100;
 }
 
 #{{ section_id }}.next .shv-slider-thumbs .shv-slide:nth-last-child(1) {
    overflow: hidden;
-   animation: showThumbnail-{{ section.id }} .5s linear 1 forwards;
+   animation: showThumbnail-{{ section.id }} 0.5s linear 1 forwards;
 }
 
 @keyframes showThumbnail-{{ section.id }} {
@@ -449,7 +445,7 @@
 }
 
 #{{ section_id }}.next .shv-slider-thumbs {
-   animation: effectNext-{{ section.id }} .5s linear 1 forwards;
+   animation: effectNext-{{ section.id }} 0.5s linear 1 forwards;
 }
 
 @keyframes effectNext-{{ section.id }} {
@@ -482,6 +478,12 @@
 /* prev click */
 #{{ section_id }}.prev .shv-slider-track .shv-slide:nth-child(2) {
    z-index: 2;
+}
+
+#{{ section_id }}.prev .shv-slider-thumbs .shv-slide:nth-child(1) {
+   overflow: hidden;
+   opacity: 0;
+   animation: showThumbnail-{{ section.id }} 0.5s linear 1 forwards;
 }
 
 #{{ section_id }}.next .shv-slider-nav button,
@@ -522,48 +524,11 @@
    #{{ section_id }} .hide-on-mobile {
        display: none !important;
    }
-   
-   /* Disable aspect ratio animations on mobile */
-   #{{ section_id }}.next .shv-slider-track .shv-slide:nth-child(1) .image-container {
-       animation: none !important;
-       width: 100% !important;
-       height: 100% !important;
-       position: absolute !important;
-       top: 50% !important;
-       left: 50% !important;
-       transform: translate(-50%, -50%) !important;
-       border-radius: 0 !important;
-       bottom: auto !important;
-   }
-   
-   #{{ section_id }}.prev .shv-slider-track .shv-slide:nth-child(2) .image-container {
-       animation: none !important;
-       width: 100% !important;
-       height: 100% !important;
-       position: absolute !important;
-       top: 50% !important;
-       left: 50% !important;
-       transform: translate(-50%, -50%) !important;
-       border-radius: 0 !important;
-       bottom: auto !important;
-   }
-   
-   /* Keep normal image positioning on mobile */
-   #{{ section_id }} .shv-slider-track .shv-slide .image-container {
-       width: 100% !important;
-       height: 100% !important;
-       position: absolute !important;
-       top: 50% !important;
-       left: 50% !important;
-       transform: translate(-50%, -50%) !important;
-       border-radius: 0 !important;
-   }
 }
 </style>
 
 <script>
 (function() {
-   // Scoped JavaScript to prevent conflicts
    const sectionId = '{{ section.id }}';
    const carouselWrapper = document.getElementById('{{ section_id }}');
    
@@ -625,7 +590,6 @@
        };
    }
 
-   // Scoped add to cart function
    window['submitAddToCartForm_' + sectionId] = function(form) {
        fetch('/cart/add.js', {
            method: 'POST',
@@ -653,6 +617,103 @@
       "type": "collection",
       "id": "selected_collection",
       "label": "Select Collection"
+    },
+    {
+      "type": "header",
+      "content": "Large Screen Settings (Desktop 1024px+)"
+    },
+    {
+      "type": "text",
+      "id": "aspect_ratio_large",
+      "label": "Aspect Ratio (Large)",
+      "default": "16/9",
+      "info": "Format: width/height (e.g., 16/9, 4/3, 21/9, 1/1)"
+    },
+    {
+      "type": "select",
+      "id": "image_fit_large",
+      "label": "Image Fit (Large)",
+      "options": [
+        {
+          "value": "contain",
+          "label": "Contain - Full image visible"
+        },
+        {
+          "value": "cover",
+          "label": "Cover - Fill space, may crop"
+        },
+        {
+          "value": "fill",
+          "label": "Fill - Stretch to fit"
+        }
+      ],
+      "default": "cover"
+    },
+    {
+      "type": "header",
+      "content": "Medium Screen Settings (Tablet 678px-1023px)"
+    },
+    {
+      "type": "text",
+      "id": "aspect_ratio_medium",
+      "label": "Aspect Ratio (Medium)",
+      "default": "4/3",
+      "info": "Format: width/height (e.g., 16/9, 4/3, 3/2, 1/1)"
+    },
+    {
+      "type": "select",
+      "id": "image_fit_medium",
+      "label": "Image Fit (Medium)",
+      "options": [
+        {
+          "value": "contain",
+          "label": "Contain - Full image visible"
+        },
+        {
+          "value": "cover",
+          "label": "Cover - Fill space, may crop"
+        },
+        {
+          "value": "fill",
+          "label": "Fill - Stretch to fit"
+        }
+      ],
+      "default": "cover"
+    },
+    {
+      "type": "header",
+      "content": "Small Screen Settings (Mobile <678px)"
+    },
+    {
+      "type": "text",
+      "id": "aspect_ratio_small",
+      "label": "Aspect Ratio (Small)",
+      "default": "3/4",
+      "info": "Format: width/height (e.g., 9/16, 3/4, 1/1)"
+    },
+    {
+      "type": "select",
+      "id": "image_fit_small",
+      "label": "Image Fit (Small)",
+      "options": [
+        {
+          "value": "contain",
+          "label": "Contain - Full image visible"
+        },
+        {
+          "value": "cover",
+          "label": "Cover - Fill space, may crop"
+        },
+        {
+          "value": "fill",
+          "label": "Fill - Stretch to fit"
+        }
+      ],
+      "default": "cover"
+    },
+    {
+      "type": "header",
+      "content": "Text Styling"
     },
     {
       "type": "color",
@@ -705,24 +766,8 @@
       "default": 400
     },
     {
-      "type": "select",
-      "id": "image_fit",
-      "label": "Image Fit",
-      "options": [
-        {
-          "value": "contain",
-          "label": "Contain"
-        },
-        {
-          "value": "cover",
-          "label": "Cover"
-        },
-        {
-          "value": "fill",
-          "label": "Fill"
-        }
-      ],
-      "default": "contain"
+      "type": "header",
+      "content": "Button Styling"
     },
     {
       "type": "color",
@@ -763,6 +808,10 @@
       "label": "Add to Cart Color",
       "default": "#ffffff",
       "info": "Choose the color of the add to cart text"
+    },
+    {
+      "type": "header",
+      "content": "Gradient Background"
     },
     {
       "type": "color",
