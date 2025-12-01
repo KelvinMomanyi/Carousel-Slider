@@ -21,11 +21,20 @@ export async function requireBilling(billing, planNames = ["PRO Monthly", "PRO A
  * @returns {Promise<Object|null>} - Shop record or null
  */
 export async function getBillingStatus(shopDomain) {
-    const shop = await prisma.shop.findUnique({
-        where: { shopDomain },
-    });
+    try {
+        const shop = await prisma.shop.findUnique({
+            where: { shopDomain },
+        });
 
-    return shop;
+        return shop;
+    } catch (error) {
+        // Handle case where Shop table doesn't exist yet (before migration)
+        if (error.code === 'P2021') {
+            console.warn('[Billing] Shop table does not exist. Run: npx prisma migrate deploy');
+            return null;
+        }
+        throw error;
+    }
 }
 
 /**
@@ -34,10 +43,19 @@ export async function getBillingStatus(shopDomain) {
  * @param {Object} data - Data to update
  */
 export async function updateSubscriptionStatus(shopDomain, data) {
-    await prisma.shop.update({
-        where: { shopDomain },
-        data,
-    });
+    try {
+        await prisma.shop.update({
+            where: { shopDomain },
+            data,
+        });
+    } catch (error) {
+        // Handle case where Shop table doesn't exist yet
+        if (error.code === 'P2021') {
+            console.warn('[Billing] Shop table does not exist. Skipping update.');
+            return;
+        }
+        throw error;
+    }
 }
 
 /**

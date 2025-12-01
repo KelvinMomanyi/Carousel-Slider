@@ -37,23 +37,32 @@ const shopify = shopifyApp({
     afterAuth: async ({ session }) => {
       const { shop, accessToken } = session;
 
-      // Calculate trial end date
-      const trialEndsAt = new Date();
-      trialEndsAt.setDate(trialEndsAt.getDate() + 7);
+      try {
+        // Calculate trial end date
+        const trialEndsAt = new Date();
+        trialEndsAt.setDate(trialEndsAt.getDate() + 7);
 
-      // Store shop data on install
-      await prisma.shop.upsert({
-        where: { shopDomain: shop },
-        create: {
-          shopDomain: shop,
-          accessToken: accessToken,
-          subscriptionStatus: "NONE",
-          trialEndsAt: trialEndsAt,
-        },
-        update: {
-          accessToken: accessToken,
-        },
-      });
+        // Store shop data on install
+        await prisma.shop.upsert({
+          where: { shopDomain: shop },
+          create: {
+            shopDomain: shop,
+            accessToken: accessToken,
+            subscriptionStatus: "NONE",
+            trialEndsAt: trialEndsAt,
+          },
+          update: {
+            accessToken: accessToken,
+          },
+        });
+      } catch (error) {
+        // Don't block installation if Shop table doesn't exist yet
+        if (error.code === 'P2021') {
+          console.warn('[Billing] Shop table does not exist. Run migration: npx prisma migrate deploy');
+        } else {
+          console.error('[Billing] Error in afterAuth:', error);
+        }
+      }
     },
   },
   webhooks: {

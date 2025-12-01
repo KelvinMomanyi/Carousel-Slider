@@ -25,11 +25,12 @@ export const loader = async ({ request }) => {
   // Check billing status
   const { hasActivePayment, appSubscriptions } = await requireBilling(billing);
 
-  // Get shop data from database
+  // Get shop data from database (may be null if table doesn't exist yet)
   const shop = await getBillingStatus(session.shop);
 
-  const inTrial = shop ? isInTrial(shop) : false;
-  const trialDaysRemaining = shop ? getTrialDaysRemaining(shop) : 0;
+  // If shop is null (table doesn't exist), treat as trial
+  const inTrial = shop ? isInTrial(shop) : true; // Default to trial mode
+  const trialDaysRemaining = shop ? getTrialDaysRemaining(shop) : 7; // Show full trial
 
   return json({
     hasActivePayment,
