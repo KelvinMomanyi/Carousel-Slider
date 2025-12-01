@@ -3,13 +3,11 @@ import {
   ApiVersion,
   AppDistribution,
   shopifyApp,
-  BillingInterval
+  BillingInterval,
+  DeliveryMethod
 } from "@shopify/shopify-app-remix/server";
 import { PrismaSessionStorage } from "@shopify/shopify-app-session-storage-prisma";
 import prisma from "./db.server";
-
-
-
 
 
 const shopify = shopifyApp({
@@ -21,6 +19,49 @@ const shopify = shopifyApp({
   authPathPrefix: "/auth",
   sessionStorage: new PrismaSessionStorage(prisma),
   distribution: AppDistribution.AppStore,
+  billing: {
+    "PRO Monthly": {
+      amount: 6.99,
+      currencyCode: "USD",
+      interval: BillingInterval.Every30Days,
+      trialDays: 7,
+    },
+    "PRO Annual": {
+      amount: 60,
+      currencyCode: "USD",
+      interval: BillingInterval.Annual,
+      trialDays: 7,
+    },
+  },
+  hooks: {
+    afterAuth: async ({ session }) => {
+      const { shop, accessToken } = session;
+
+      // Calculate trial end date
+      const trialEndsAt = new Date();
+      trialEndsAt.setDate(trialEndsAt.getDate() + 7);
+
+      // Store shop data on install
+      await prisma.shop.upsert({
+        where: { shopDomain: shop },
+        create: {
+          shopDomain: shop,
+          accessToken: accessToken,
+          subscriptionStatus: "NONE",
+          trialEndsAt: trialEndsAt,
+        },
+        update: {
+          accessToken: accessToken,
+        },
+      });
+    },
+  },
+  webhooks: {
+    APP_SUBSCRIPTIONS_UPDATE: {
+      deliveryMethod: DeliveryMethod.Http,
+      callbackUrl: "/webhooks/subscription",
+    },
+  },
   future: {
     unstable_newEmbeddedAuthStrategy: true,
     removeRest: true,
@@ -29,6 +70,7 @@ const shopify = shopifyApp({
     ? { customShopDomains: [process.env.SHOP_CUSTOM_DOMAIN] }
     : {}),
 });
+
 
 export default shopify;
 export const apiVersion = ApiVersion.January25;
