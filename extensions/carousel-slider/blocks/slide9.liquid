@@ -1,0 +1,92 @@
+{% liquid
+assign section_id = 'slider-11-' | append: block.id
+if block.settings.selected_collection != blank
+assign slider_collection = collections[block.settings.selected_collection]
+else
+assign slider_collection = collections.all
+endif
+assign products_limit = block.settings.products_limit | default: 6
+assign products_display_mode = block.settings.products_display_mode | default: 'limited'
+assign products_to_show = products_limit
+if products_display_mode == 'all'
+assign products_to_show = slider_collection.products_count | default: slider_collection.products.size
+endif
+%}
+{% if slider_collection != blank and slider_collection.products_count > 0 %}
+{{ 'slider-11-cards.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'slider-11-cards.js' | asset_url }}" defer></script>
+<div id="{{ section_id }}" class="slider-11-root gradient" style="--slider-11-height: {{ block.settings.section_height }};" data-slider-11 {{ block.shopify_attributes }}>
+<div class="container">
+<div id="slide-{{ block.id }}" data-slider-11-track>
+{% for product in slider_collection.products limit: products_to_show %}
+{% assign active_variant = product.selected_or_first_available_variant %}
+<div class="item" style="background-image: url('{{ product.featured_image | image_url: width: 1600 }}');">
+<div class="content">
+<div class="name">{{ product.title | escape }}</div>
+<div class="price">
+{% if active_variant.compare_at_price > active_variant.price %}
+<span class="compare">{{ active_variant.compare_at_price | money_with_currency }}</span>
+{% endif %}
+<span>{{ active_variant.price | money_with_currency }}</span>
+</div>
+<div class="actions">
+<button class="add-to-cart" type="button" data-cart-id="{{ active_variant.id }}"{% unless active_variant.available %} disabled{% endunless %}>{% if active_variant.available %}Add to cart{% else %}Sold out{% endif %}</button>
+<p class="cart-feedback" aria-live="polite"></p>
+</div>
+</div>
+</div>
+{% endfor %}
+</div>
+<div class="buttons">
+<button id="prev-{{ block.id }}" type="button" aria-label="Previous slide" data-slider-11-prev>&#8249;</button>
+<button id="next-{{ block.id }}" type="button" aria-label="Next slide" data-slider-11-next>&#8250;</button>
+</div>
+</div>
+</div>
+{% else %}
+<div class="slider-liquid-empty" {{ block.shopify_attributes }}>Select a collection with products to render this slider.</div>
+{% endif %}
+{% schema %}
+{
+"name": "Carousel: Coverflow",
+"settings": [
+{
+"type": "collection",
+"id": "selected_collection",
+"label": "Collection"
+},
+{
+"type": "select",
+"id": "products_display_mode",
+"label": "Products to show",
+"options": [
+{
+"value": "limited",
+"label": "Set number"
+},
+{
+"value": "all",
+"label": "All products"
+}
+],
+"default": "limited"
+},
+{
+"type": "range",
+"id": "products_limit",
+"label": "Number of products",
+"min": 3,
+"max": 10,
+"step": 1,
+"default": 6
+},
+{
+"type": "text",
+"id": "section_height",
+"label": "Section height",
+"default": "700px"
+}
+],
+"target": "section"
+}
+{% endschema %}

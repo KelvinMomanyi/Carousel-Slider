@@ -1,0 +1,62 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap');
+.slider-09-root { background-color: #e1dad0; margin: 0; font-family: Poppins, sans-serif; font-size: 15px; position: relative; overflow: hidden; }
+.slider-09-root header .logo img { height: 50px; }
+.slider-09-root header { width: 1140px; max-width: 90%; margin: auto; height: 50px; display: flex; justify-content: space-between; align-items: center; position: relative; z-index: 100; }
+.slider-09-root header nav { display: flex; gap: 40px; }
+.slider-09-root header nav a { text-decoration: none; color: #eee; font-weight: 500; }
+.slider-09-root .carousel { width: 100%; background-color: #555; height: var(--s09-height, 720px); color: #eee; margin-top: -50px; position: relative; overflow: hidden; }
+.slider-09-root .carousel .list { width: 100%; height: 100%; position: relative; z-index: 1; }
+.slider-09-root .carousel .list .item { position: absolute; inset: 0; z-index: 1; }
+.slider-09-root .carousel .list .item::before { position: absolute; width: 100%; height: 100%; background-color: var(--bg-color); content: var(--title); font-size: 15em; font-weight: bold; text-transform: uppercase; display: flex; justify-content: center; align-items: center; color: #eee4; z-index: -1; }
+.slider-09-root .carousel .list .item .image { flex-shrink: 0; width: clamp(260px, 30vw, 360px); height: clamp(410px, 48vw, 560px); --left: -200px; position: relative; display: flex; justify-content: center; align-items: center; }
+.slider-09-root .carousel .list .item .image-mask { position: absolute; width: 100%; height: 100%; background: var(--img-src) center / cover no-repeat; border-radius: 38% 38% 16% 16% / 14% 14% 10% 10%; overflow: hidden; transition: 1s ease-in-out; filter: brightness(0.8) blur(3px); box-shadow: inset 0 0 30px rgba(0,0,0,0.5); }
+.slider-09-root .carousel .list .item .creative-product-img { position: relative; max-width: 142%; max-height: 122%; object-fit: contain; z-index: 1; transform: scale(0.5) rotate(-20deg) translateY(100px); opacity: 0; transition: transform 1s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.8s ease; filter: drop-shadow(10px 20px 25px rgba(0,0,0,0.6)); }
+.slider-09-root .carousel .list .item.active .creative-product-img { transform: scale(1.05) rotate(5deg) translateY(0); opacity: 1; animation: slider09-floatProduct 6s ease-in-out infinite alternate; animation-delay: 1s; }
+@keyframes slider09-floatProduct { 0% { transform: scale(1.05) rotate(5deg) translateY(0); } 100% { transform: scale(1.1) rotate(0deg) translateY(-16px); } }
+.slider-09-root .carousel .list .item .content { width: 1140px; max-width: 90%; margin: auto; height: 100%; padding-top: 50px; box-sizing: border-box; display: flex; gap: 50px; justify-content: space-between; align-items: center; }
+.slider-09-root .carousel .list .item .info { position: relative; z-index: 10; max-width: 430px; }
+.slider-09-root .carousel .list .item .info .title { font-size: clamp(3rem, 6vw, 6em); font-weight: bold; text-transform: uppercase; line-height: 0.95em; overflow-wrap: anywhere; }
+.slider-09-root .carousel .list .item .info .price { align-items: baseline; display: flex; flex-wrap: wrap; gap: 8px 14px; font-size: clamp(1.1rem, 2.2vw, 1.45rem); font-weight: 700; line-height: 1.2; margin: 20px 0 22px; }
+.slider-09-root .carousel .list .item .info .price .compare { font-size: 0.78em; font-weight: 500; opacity: 0.72; text-decoration: line-through; }
+.slider-09-root .carousel .list .item .actions { align-items: flex-start; display: flex; flex-direction: column; gap: 9px; }
+.slider-09-root .carousel .list .item .actions form { margin: 0; }
+.slider-09-root .carousel .list .item .add-to-cart { background: #fff; border: 1px solid rgba(255,255,255,0.34); border-radius: 999px; box-shadow: 0 16px 38px rgba(0,0,0,0.22); color: #171717; cursor: pointer; font: inherit; font-weight: 700; line-height: 1; min-height: 44px; padding: 0 24px; transition: transform 0.25s ease, background 0.25s ease, color 0.25s ease, opacity 0.25s ease; }
+.slider-09-root .carousel .list .item .add-to-cart:hover { background: #171717; color: #fff; transform: translateY(-2px); }
+.slider-09-root .carousel .list .item .add-to-cart[disabled] { cursor: not-allowed; opacity: 0.62; transform: none; }
+.slider-09-root .carousel .list .item .add-to-cart[disabled]:hover { background: #fff; color: #171717; }
+.slider-09-root .carousel .list .item .cart-feedback { font-size: 0.78rem; line-height: 1.25; margin: 0; min-height: 1rem; opacity: 0.9; }
+.slider-09-root .carousel .list .item .cart-feedback[data-state="success"] { color: #e8ffe2; }
+.slider-09-root .carousel .list .item .cart-feedback[data-state="error"] { color: #ffe1da; }
+.slider-09-root .carousel .list .item.active { z-index: 2; }
+.slider-09-root .carousel .list .item.active .image { --left: 0; }
+.slider-09-root .arrows button { position: absolute; top: 50%; z-index: 2; width: 40px; height: 40px; border-radius: 50%; font-family: monospace; background-color: #eee3; border: none; color: #fff; font-weight: bold; font-size: large; cursor: pointer; left: 10%; transition: background 0.5s, color 0.5s; }
+.slider-09-root .arrows button.arrows-next { left: unset; right: 10%; }
+.slider-09-root .arrows button:hover { background-color: #eee; color: #000; }
+.slider-09-root .dots { list-style: none; margin: 0; padding: 0; display: flex; gap: 20px; position: absolute; bottom: 30px; z-index: 2; width: max-content; left: 50%; transform: translateX(-50%); }
+.slider-09-root .dots li { width: 15px; height: 15px; background-color: #eee5; border-radius: 50%; cursor: pointer; }
+.slider-09-root .dots li.active { background-color: #eee; }
+@media screen and (max-width: 767px) {
+  .slider-09-root .carousel { height: 100vh; }
+  .slider-09-root .carousel .list .item .image { width: clamp(210px, 62vw, 280px); height: clamp(320px, 60vh, 420px); }
+  .slider-09-root .carousel .list .item .creative-product-img { max-width: 136%; max-height: 116%; }
+  .slider-09-root .carousel .list .item .info { position: absolute; background: rgba(0,0,0,0.18); bottom: 58px; left: 0; max-width: none; right: 0; width: 100%; padding: 24px 22px 28px; box-sizing: border-box; text-align: center; backdrop-filter: blur(20px); }
+  .slider-09-root .carousel .list .item .info .title { font-size: clamp(2rem, 10vw, 3rem); }
+  .slider-09-root .carousel .list .item .info .price { justify-content: center; margin: 14px 0 16px; }
+  .slider-09-root .carousel .list .item .actions { align-items: center; }
+  .slider-09-root .carousel .list .item .content { justify-content: center; align-items: start; padding-top: clamp(42px, 8vh, 70px); }
+  .slider-09-root .arrows button { top: 44%; bottom: auto; left: 16px; }
+  .slider-09-root .arrows button.arrows-next { right: 16px; }
+  .slider-09-root .dots { bottom: 18px; }
+}
+@keyframes slider09-transformAnimation { from { transform: translateX(var(--transform-from)); } to { transform: translateX(var(--transform-to)); } }
+.slider-09-root .carousel.effect .item .image,
+.slider-09-root .carousel.effect .item .info .title,
+.slider-09-root .carousel.effect .item .info .price,
+.slider-09-root .carousel.effect .item .info .actions { animation: slider09-transformAnimation 1s ease-in-out 1 forwards; }
+.slider-09-root .carousel.effect .item .info .price { animation-delay: .1s; }
+.slider-09-root .carousel.effect .item .info .actions { animation-delay: .2s; }
+.slider-09-root .carousel.effect .item.active { clip-path: polygon(var(--slider09-clip-edge, 100%) 0, var(--slider09-clip-edge, 100%) 0, var(--slider09-clip-edge, 100%) 100%, var(--slider09-clip-edge, 100%) 100%); animation: slider09-animationClipPath .9s ease-in-out 1 forwards; }
+@keyframes slider09-animationClipPath { to { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); } }
+.slider-09-root .carousel.effect { --slider09-active-from: 300px; --slider09-item-to: -300px; --slider09-clip-edge: 100%; }
+.slider-09-root .carousel.effect .item.active { --transform-from: var(--slider09-active-from); --transform-to: 0px; }
+.slider-09-root .carousel.effect .item { --transform-from: 0; --transform-to: var(--slider09-item-to); }

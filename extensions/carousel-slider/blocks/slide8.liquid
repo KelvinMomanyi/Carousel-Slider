@@ -1,0 +1,198 @@
+{{ 'slider-10.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'slider-10.js' | asset_url }}" defer></script>
+{% liquid
+assign section_id = 'slider-10-' | append: block.id
+if block.settings.selected_collection != blank
+assign slider_collection = collections[block.settings.selected_collection]
+else
+assign slider_collection = collections.all
+endif
+assign products_limit = block.settings.products_limit | default: 3
+assign products_display_mode = block.settings.products_display_mode | default: 'limited'
+assign products_to_show = products_limit
+if products_display_mode == 'all'
+assign products_to_show = slider_collection.products_count | default: slider_collection.products.size
+endif
+assign use_custom_colors = false
+if block.settings.color_scheme_mode == 'custom'
+assign use_custom_colors = true
+endif
+%}
+{% if slider_collection != blank and slider_collection.products_count > 0 %}
+<div
+id="{{ section_id }}"
+class="slider-10-root gradient" data-block-id="{{ block.id }}"
+style="
+{% if use_custom_colors and block.settings.custom_background_color != blank %}
+--slider-background-rgb: {{ block.settings.custom_background_color.red }}, {{ block.settings.custom_background_color.green }}, {{ block.settings.custom_background_color.blue }};
+--slider-background: {{ block.settings.custom_background_color }};
+{% endif %}
+{% if use_custom_colors and block.settings.custom_text_color != blank %}
+--slider-foreground-rgb: {{ block.settings.custom_text_color.red }}, {{ block.settings.custom_text_color.green }}, {{ block.settings.custom_text_color.blue }};
+--slider-foreground: {{ block.settings.custom_text_color }};
+{% endif %}
+{% if use_custom_colors and block.settings.custom_button_color != blank %}
+--slider-button-rgb: {{ block.settings.custom_button_color.red }}, {{ block.settings.custom_button_color.green }}, {{ block.settings.custom_button_color.blue }};
+--slider-accent: {{ block.settings.custom_button_color }};
+{% endif %}
+{% if use_custom_colors and block.settings.custom_outline_color != blank %}
+--slider-secondary-rgb: {{ block.settings.custom_outline_color.red }}, {{ block.settings.custom_outline_color.green }}, {{ block.settings.custom_outline_color.blue }};
+--slider-accent-secondary: {{ block.settings.custom_outline_color }};
+{% endif %}
+{% if use_custom_colors and block.settings.custom_button_text_color != blank %}
+--slider-button-text-rgb: {{ block.settings.custom_button_text_color.red }}, {{ block.settings.custom_button_text_color.green }}, {{ block.settings.custom_button_text_color.blue }};
+--slider-on-accent: {{ block.settings.custom_button_text_color }};
+{% endif %}
+{% if use_custom_colors and block.settings.custom_shadow_color != blank %}
+--slider-shadow-rgb: {{ block.settings.custom_shadow_color.red }}, {{ block.settings.custom_shadow_color.green }}, {{ block.settings.custom_shadow_color.blue }};
+{% endif %}
+{% if use_custom_colors and block.settings.custom_background_gradient != blank %}
+--slider-custom-background: {{ block.settings.custom_background_gradient }};
+{% endif %}
+--s10-height: {{ block.settings.section_height }};
+"
+{{ block.shopify_attributes }}
+>
+<div class="container">
+<div id="slide-{{ block.id }}">
+{% for product in slider_collection.products limit: products_to_show %}
+{% assign active_variant = product.selected_or_first_available_variant %}
+<div class="item">
+<div class="image">
+{% if product.featured_image %}
+<img src="{{ product.featured_image | image_url: width: 1400 }}" alt="{{ product.title | escape }}" width="{{ product.featured_image.width }}" height="{{ product.featured_image.height }}" loading="lazy">
+{% endif %}
+</div>
+<div class="content">
+<div class="left">
+<h1>{{ product.title | escape }}</h1>
+<div class="des">{{ product.description | strip_html | truncatewords: 22 }}</div>
+<button class="add-to-cart" type="button" data-cart-id="{{ active_variant.id }}"{% unless active_variant.available %} disabled{% endunless %}>{% if active_variant.available %}Add to cart{% else %}Sold out{% endif %}</button>
+<button class="see-more" type="button" data-url="{{ product.url }}">See more <span aria-hidden="true">&#8250;&#8250;&#8250;</span></button>
+<p class="cart-feedback" aria-live="polite"></p>
+</div>
+<div class="right">
+<h2>Details</h2>
+<ul>
+<li><p>Price</p><p>{{ product.price | money }}</p></li>
+<li><p>Vendor</p><p>{{ product.vendor | default: shop.name | escape }}</p></li>
+<li><p>Type</p><p>{{ product.type | default: 'Product' | escape }}</p></li>
+</ul>
+</div>
+</div>
+</div>
+{% endfor %}
+</div>
+<div class="directional">
+<button id="prev-{{ block.id }}" type="button" aria-label="Previous slide">&#8249;</button>
+<button id="next-{{ block.id }}" type="button" aria-label="Next slide">&#8250;</button>
+</div>
+</div>
+</div>
+{% comment %}Styles and script moved to slider-10.css and slider-10.js assets{% endcomment %}
+{% else %}
+<div class="slider-liquid-empty" {{ block.shopify_attributes }}>Select a collection with products to render this slider.</div>
+{% endif %}
+{% schema %}
+{
+"name": "Carousel Vanish",
+"settings": [
+{
+"type": "collection",
+"id": "selected_collection",
+"label": "Collection"
+},
+{
+"type": "select",
+"id": "products_display_mode",
+"label": "Products to show",
+"options": [
+{
+"value": "limited",
+"label": "Set number"
+},
+{
+"value": "all",
+"label": "All products"
+}
+],
+"default": "limited"
+},
+{
+"type": "range",
+"id": "products_limit",
+"label": "Number of products",
+"min": 2,
+"max": 8,
+"step": 1,
+"default": 3
+},
+{
+"type": "header",
+"content": "Style Settings"
+},
+{
+"type": "paragraph",
+"content": "Native theme color scheme pickers are not supported in app blocks. Leave these overrides blank to inherit colors from the parent theme section or Apps wrapper."
+},
+{
+"type": "select",
+"id": "color_scheme_mode",
+"label": "Color scheme",
+"options": [
+{
+"value": "inherit",
+"label": "Inherit parent section"
+},
+{
+"value": "custom",
+"label": "Use custom overrides"
+}
+],
+"default": "inherit"
+},
+{
+"type": "color",
+"id": "custom_background_color",
+"label": "Background color override"
+},
+{
+"type": "color_background",
+"id": "custom_background_gradient",
+"label": "Background gradient override"
+},
+{
+"type": "color",
+"id": "custom_text_color",
+"label": "Text color override"
+},
+{
+"type": "color",
+"id": "custom_button_color",
+"label": "Primary button/accent override"
+},
+{
+"type": "color",
+"id": "custom_button_text_color",
+"label": "Primary button text override"
+},
+{
+"type": "color",
+"id": "custom_outline_color",
+"label": "Secondary button/accent override"
+},
+{
+"type": "color",
+"id": "custom_shadow_color",
+"label": "Shadow color override"
+},
+{
+"type": "text",
+"id": "section_height",
+"label": "Section height",
+"default": "700px"
+}
+],
+"target": "section"
+}
+{% endschema %}

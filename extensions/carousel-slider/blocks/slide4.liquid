@@ -1,0 +1,223 @@
+{% liquid
+  assign section_id = 'slider-06-' | append: block.id
+  if block.settings.selected_collection != blank
+    assign slider_collection = collections[block.settings.selected_collection]
+  else
+    assign slider_collection = collections.all
+  endif
+  assign products_limit = block.settings.products_limit | default: 3
+  assign products_display_mode = block.settings.products_display_mode | default: 'limited'
+  assign products_to_show = products_limit
+  if products_display_mode == 'all'
+    assign products_to_show = slider_collection.products_count | default: slider_collection.products.size
+  endif
+  assign use_custom_colors = false
+  if block.settings.color_scheme_mode == 'custom'
+    assign use_custom_colors = true
+  endif
+%}
+
+{{ 'slider-06.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'slider-06.js' | asset_url }}" defer></script>
+{% if slider_collection != blank and slider_collection.products_count > 0 %}
+<div
+  id="{{ section_id }}"
+  class="slider-06-root gradient"
+  style="
+    --s06-height: {{ block.settings.section_height }};
+    {% if use_custom_colors and block.settings.custom_background_color != blank %}
+      --slider-background-rgb: {{ block.settings.custom_background_color.red }}, {{ block.settings.custom_background_color.green }}, {{ block.settings.custom_background_color.blue }};
+      --slider-background: {{ block.settings.custom_background_color }};
+    {% endif %}
+    {% if use_custom_colors and block.settings.custom_text_color != blank %}
+      --slider-foreground-rgb: {{ block.settings.custom_text_color.red }}, {{ block.settings.custom_text_color.green }}, {{ block.settings.custom_text_color.blue }};
+      --slider-foreground: {{ block.settings.custom_text_color }};
+    {% endif %}
+    {% if use_custom_colors and block.settings.custom_button_color != blank %}
+      --slider-button-rgb: {{ block.settings.custom_button_color.red }}, {{ block.settings.custom_button_color.green }}, {{ block.settings.custom_button_color.blue }};
+      --slider-accent: {{ block.settings.custom_button_color }};
+    {% endif %}
+    {% if use_custom_colors and block.settings.custom_outline_color != blank %}
+      --slider-secondary-rgb: {{ block.settings.custom_outline_color.red }}, {{ block.settings.custom_outline_color.green }}, {{ block.settings.custom_outline_color.blue }};
+      --slider-accent-secondary: {{ block.settings.custom_outline_color }};
+    {% endif %}
+    {% if use_custom_colors and block.settings.custom_button_text_color != blank %}
+      --slider-button-text-rgb: {{ block.settings.custom_button_text_color.red }}, {{ block.settings.custom_button_text_color.green }}, {{ block.settings.custom_button_text_color.blue }};
+      --slider-on-accent: {{ block.settings.custom_button_text_color }};
+    {% endif %}
+    {% if use_custom_colors and block.settings.custom_shadow_color != blank %}
+      --slider-shadow-rgb: {{ block.settings.custom_shadow_color.red }}, {{ block.settings.custom_shadow_color.green }}, {{ block.settings.custom_shadow_color.blue }};
+    {% endif %}
+    {% if use_custom_colors and block.settings.custom_error_color != blank %}
+      --slider-error-rgb: {{ block.settings.custom_error_color.red }}, {{ block.settings.custom_error_color.green }}, {{ block.settings.custom_error_color.blue }};
+      --slider-error: {{ block.settings.custom_error_color }};
+    {% endif %}
+    {% if use_custom_colors and block.settings.custom_background_gradient != blank %}
+      --slider-custom-background: {{ block.settings.custom_background_gradient }};
+    {% endif %}
+  "
+>
+  <section class="carousel">
+    <div class="list">
+      {% for product in slider_collection.products limit: products_to_show %}
+        {% assign active_variant = product.selected_or_first_available_variant %}
+        <div class="item">
+          <figure>
+            {% if product.featured_image %}
+              <img
+                src="{{ product.featured_image | image_url: width: 1800 }}"
+                alt="{{ product.title | escape }}"
+                width="{{ product.featured_image.width }}"
+                height="{{ product.featured_image.height }}"
+                loading="lazy"
+              >
+            {% endif %}
+          </figure>
+          <div class="content">
+            <p class="category">{{ product.type | default: product.vendor | default: 'Sport Shoes' | escape }}</p>
+            <h2>{{ product.title | escape }}</h2>
+            <p class="price">{{ active_variant.price | money_with_currency }}</p>
+            <p class="description">{{ product.description | strip_html | truncatewords: 26 }}</p>
+            <div class="more">
+              <button type="button" data-cart-id="{{ active_variant.id }}"{% unless active_variant.available %} disabled{% endunless %}>{% if active_variant.available %}Add To Cart{% else %}Sold Out{% endif %}</button>
+              <button type="button" data-url="{{ product.url }}"><span aria-hidden="true">&#9654;</span> See More</button>
+              <p class="cart-feedback" aria-live="polite"></p>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+
+    <div class="arrows">
+      <button id="prev-{{ block.id }}" data-slider-06-prev type="button">&#8249;</button>
+      <button id="next-{{ block.id }}" data-slider-06-next type="button">&#8250;</button>
+    </div>
+
+    <div class="indicators">
+      <div class="number">01</div>
+      <ul>
+        {% for product in slider_collection.products limit: products_to_show %}
+          <li{% if forloop.first %} class="active"{% endif %}></li>
+        {% endfor %}
+      </ul>
+    </div>
+  </section>
+</div>
+
+{% comment %}Styles and script moved to slider-06.css and slider-06.js assets{% endcomment %}
+{% else %}
+  <div class="slider-liquid-empty">Select a collection with products to render this slider.</div>
+{% endif %}
+
+{% schema %}
+{
+  "name": "Carousel Swift Layout",
+  "target": "section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Content Settings"
+    },
+    {
+      "type": "collection",
+      "id": "selected_collection",
+      "label": "Collection"
+    },
+    {
+      "type": "select",
+      "id": "products_display_mode",
+      "label": "Products to show",
+      "options": [
+        {
+          "value": "limited",
+          "label": "Set number"
+        },
+        {
+          "value": "all",
+          "label": "All products"
+        }
+      ],
+      "default": "limited"
+    },
+    {
+      "type": "range",
+      "id": "products_limit",
+      "label": "Number of products",
+      "min": 2,
+      "max": 8,
+      "step": 1,
+      "default": 3
+    },
+    {
+      "type": "header",
+      "content": "Style Settings"
+    },
+    {
+      "type": "paragraph",
+      "content": "Native theme color scheme pickers are not supported in app blocks. Leave these overrides blank to inherit colors from the parent theme section or Apps wrapper."
+    },
+    {
+      "type": "select",
+      "id": "color_scheme_mode",
+      "label": "Color scheme",
+      "options": [
+        {
+          "value": "inherit",
+          "label": "Inherit parent section"
+        },
+        {
+          "value": "custom",
+          "label": "Use custom overrides"
+        }
+      ],
+      "default": "inherit"
+    },
+    {
+      "type": "color",
+      "id": "custom_background_color",
+      "label": "Background color override"
+    },
+    {
+      "type": "color_background",
+      "id": "custom_background_gradient",
+      "label": "Background gradient override"
+    },
+    {
+      "type": "color",
+      "id": "custom_text_color",
+      "label": "Text color override"
+    },
+    {
+      "type": "color",
+      "id": "custom_button_color",
+      "label": "Primary button/accent override"
+    },
+    {
+      "type": "color",
+      "id": "custom_button_text_color",
+      "label": "Primary button text override"
+    },
+    {
+      "type": "color",
+      "id": "custom_outline_color",
+      "label": "Secondary button/accent override"
+    },
+    {
+      "type": "color",
+      "id": "custom_shadow_color",
+      "label": "Shadow color override"
+    },
+    {
+      "type": "color",
+      "id": "custom_error_color",
+      "label": "Error message color override"
+    },
+    {
+      "type": "text",
+      "id": "section_height",
+      "label": "Section height",
+      "default": "100vh"
+    }
+  ]
+}
+{% endschema %}

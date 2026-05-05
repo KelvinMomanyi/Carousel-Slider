@@ -1,0 +1,136 @@
+{{ 'slider-09.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'slider-09.js' | asset_url }}" defer></script>
+
+{% liquid
+assign section_id = 'slider-09-' | append: block.id
+if block.settings.selected_collection != blank
+assign slider_collection = collections[block.settings.selected_collection]
+else
+assign slider_collection = collections.all
+endif
+assign products_limit = block.settings.products_limit | default: 3
+assign products_display_mode = block.settings.products_display_mode | default: 'limited'
+assign products_to_show = products_limit
+if products_display_mode == 'all'
+assign products_to_show = slider_collection.products_count | default: slider_collection.products.size
+endif
+%}
+{% if slider_collection != blank and slider_collection.products_count > 0 %}
+<div id="{{ section_id }}" class="slider-09-root" style="--s09-height: {{ block.settings.section_height }}" {{ block.shopify_attributes }}>
+<div class="carousel">
+<div class="list">
+{% for product in slider_collection.products limit: products_to_show %}
+{% assign active_variant = product.selected_or_first_available_variant %}
+{% assign mod = forloop.index0 | modulo: 3 %}
+{% case mod %}
+{% when 0 %}{% assign bg = block.settings.color_1 %}
+{% when 1 %}{% assign bg = block.settings.color_2 %}
+{% else %}{% assign bg = block.settings.color_3 %}
+{% endcase %}
+<div class="item{% if forloop.first %} active{% endif %}"
+style="--img-src: url('{{ product.featured_image | image_url: width: 1200 }}'); --bg-color: {{ bg }}; --title: '{{ product.title | escape }}'">
+<div class="content">
+<div class="image">
+<div class="image-mask"></div>
+<img class="creative-product-img" src="{{ product.featured_image | image_url: width: 800 }}" alt="{{ product.title | escape }}" width="{{ product.featured_image.width }}" height="{{ product.featured_image.height }}" loading="lazy">
+</div>
+<div class="info">
+<div class="title">{{ product.title | escape }}</div>
+<div class="price">
+{% if active_variant.compare_at_price > active_variant.price %}
+<span class="compare">{{ active_variant.compare_at_price | money_with_currency }}</span>
+{% endif %}
+<span>{{ active_variant.price | money_with_currency }}</span>
+</div>
+<div class="actions">
+<form action="{{ routes.cart_add_url }}" method="post" enctype="multipart/form-data" data-slider-09-cart-form>
+<input type="hidden" name="id" value="{{ active_variant.id }}">
+<input type="hidden" name="quantity" value="1">
+<button class="add-to-cart" type="submit"{% unless active_variant.available %} disabled{% endunless %}>
+<span data-slider-09-cart-label>{% if active_variant.available %}Add to cart{% else %}Sold out{% endif %}</span>
+</button>
+</form>
+<p class="cart-feedback" data-slider-09-cart-feedback aria-live="polite"></p>
+</div>
+</div>
+</div>
+</div>
+{% endfor %}
+</div>
+<div class="arrows">
+<button class="arrows-prev" type="button">&#8249;</button>
+<button class="arrows-next" type="button">&#8250;</button>
+</div>
+<ul class="dots">
+{% for product in slider_collection.products limit: products_to_show %}
+<li{% if forloop.first %} class="active"{% endif %}></li>
+{% endfor %}
+</ul>
+</div>
+</div>
+{% comment %}Styles and script moved to slider-09.css and slider-09.js assets{% endcomment %}
+{% else %}
+<div class="slider-liquid-empty" {{ block.shopify_attributes }}>Select a collection with products to render this slider.</div>
+{% endif %}
+{% schema %}
+{
+"name": "Carousel Elegance",
+"settings": [
+{
+"type": "collection",
+"id": "selected_collection",
+"label": "Collection"
+},
+{
+"type": "select",
+"id": "products_display_mode",
+"label": "Products to show",
+"options": [
+{
+"value": "limited",
+"label": "Set number"
+},
+{
+"value": "all",
+"label": "All products"
+}
+],
+"default": "limited"
+},
+{
+"type": "range",
+"id": "products_limit",
+"label": "Number of products",
+"min": 2,
+"max": 8,
+"step": 1,
+"default": 3
+},
+{
+"type": "text",
+"id": "section_height",
+"label": "Section height",
+"default": "720px"
+},
+{
+"type": "color",
+"id": "color_1",
+"label": "Color 1",
+"default": "#428372"
+},
+{
+"type": "color",
+"id": "color_2",
+"label": "Color 2",
+"default": "#EEAA19"
+},
+{
+"type": "color",
+"id": "color_3",
+"label": "Color 3",
+"default": "#e86c3f"
+}
+],
+"target": "section"
+}
+{% endschema %}

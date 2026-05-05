@@ -1,0 +1,151 @@
+{% liquid
+assign section_id = 'slider-03-' | append: block.id
+if block.settings.selected_collection != blank
+assign slider_collection = collections[block.settings.selected_collection]
+else
+assign slider_collection = collections.all
+endif
+assign products_limit = block.settings.products_limit | default: 6
+assign products_display_mode = block.settings.products_display_mode | default: 'limited'
+assign products_to_show = products_limit
+if products_display_mode == 'all'
+assign products_to_show = slider_collection.products_count | default: slider_collection.products.size
+endif
+%}
+{{ 'slider-03-aerphone.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'slider-03-aerphone.js' | asset_url }}" defer></script>
+{% if slider_collection != blank and slider_collection.products_count > 0 %}
+<div
+id="{{ section_id }}"
+class="slider-03-root"
+data-slider-03
+style="--slider-03-height: {{ block.settings.section_height }};"
+{{ block.shopify_attributes }}
+>
+<div class="carousel">
+<div class="list">
+{% for product in slider_collection.products limit: products_to_show %}
+{% assign active_variant = product.selected_or_first_available_variant %}
+<div class="item">
+{% if product.featured_image %}
+<img
+src="{{ product.featured_image | image_url: width: 1800 }}"
+alt="{{ product.title | escape }}"
+width="{{ product.featured_image.width }}"
+height="{{ product.featured_image.height }}"
+loading="lazy"
+>
+{% endif %}
+<div class="introduce">
+<div class="productName">{{ product.title | escape }}</div>
+<div class="productPrice">{{ active_variant.price | money_with_currency }}</div>
+<div class="productActions">
+<form action="{{ routes.cart_add_url }}" method="post" enctype="multipart/form-data" class="addToCartForm">
+<input type="hidden" name="id" value="{{ active_variant.id }}">
+<input type="hidden" name="quantity" value="1">
+<button class="addToCart" type="submit"{% unless active_variant.available %} disabled{% endunless %}>
+{% if active_variant.available %}ADD TO CART{% else %}SOLD OUT{% endif %}
+</button>
+</form>
+<p class="cartFeedback" data-slider-03-cart-feedback aria-live="polite"></p>
+</div>
+</div>
+<div class="detail">
+<div class="title">{{ product.title | escape }}</div>
+<div class="des">{{ product.description | strip_html | truncatewords: 50 }}</div>
+<div class="specifications">
+<div>
+<p>Price</p>
+<p>{{ active_variant.price | money_with_currency }}</p>
+</div>
+<div>
+<p>Vendor</p>
+<p>{{ product.vendor | default: shop.name | escape }}</p>
+</div>
+<div>
+<p>Type</p>
+<p>{{ product.type | default: 'Product' | escape }}</p>
+</div>
+<div>
+<p>Status</p>
+<p>{% if active_variant.available %}In stock{% else %}Sold out{% endif %}</p>
+</div>
+<div>
+<p>Link</p>
+<p>{{ product.handle | escape }}</p>
+</div>
+</div>
+<div class="checkout">
+<button type="button" data-url="{{ product.url }}">VIEW PRODUCT</button>
+<button type="button" data-cart-id="{{ active_variant.id }}"{% unless active_variant.available %} disabled{% endunless %}>
+BUY NOW
+</button>
+<p class="cartFeedback cartFeedback--detail" data-slider-03-cart-feedback aria-live="polite"></p>
+</div>
+</div>
+</div>
+{% endfor %}
+</div>
+<div class="arrows">
+<button data-slider-03-prev type="button">&#8249;</button>
+<button data-slider-03-next type="button">&#8250;</button>
+</div>
+</div>
+</div>
+{% else %}
+<div class="slider-liquid-empty" {{ block.shopify_attributes }}>
+Select a collection with products to render this slider.
+</div>
+{% endif %}
+{% schema %}
+{
+  "name": "Carousel: Aerphone",
+"target": "section",
+"settings": [
+{
+"type": "header",
+"content": "Content Settings"
+},
+{
+"type": "collection",
+"id": "selected_collection",
+"label": "Collection"
+},
+{
+"type": "select",
+"id": "products_display_mode",
+"label": "Products to show",
+"options": [
+{
+"value": "limited",
+"label": "Set number"
+},
+{
+"value": "all",
+"label": "All products"
+}
+],
+"default": "limited"
+},
+{
+"type": "range",
+"id": "products_limit",
+"label": "Number of products",
+"min": 3,
+"max": 12,
+"step": 1,
+"default": 6
+},
+{
+"type": "header",
+"content": "Style Settings"
+},
+{
+"type": "text",
+"id": "section_height",
+"label": "Section height",
+"default": "800px"
+}
+]
+}
+{% endschema %}

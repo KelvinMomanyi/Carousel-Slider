@@ -1,0 +1,580 @@
+{% liquid
+ assign section_id = 'slider-07-' | append: block.id
+if block.settings.selected_collection != blank
+assign slider_collection = collections[block.settings.selected_collection]
+else
+ assign slider_collection = collections.all
+ endif
+ assign products_limit = block.settings.products_limit | default: 10
+ assign products_display_mode = block.settings.products_display_mode | default: 'limited'
+ assign products_to_show = products_limit
+ if products_display_mode == 'all'
+ assign products_to_show = slider_collection.products_count | default: slider_collection.products.size
+ endif
+%}
+{% if slider_collection != blank and slider_collection.products_count > 0 %}
+ <div id="{{ section_id }}" class="slider-07-root" style="--bg-color: {{ block.settings.bg_color | default: '#0b0c10' }}; --bg-image-opacity: {{ block.settings.bg_image_opacity | divided_by: 100.0 | default: 1 }}; --bg-image-blur: {{ block.settings.bg_image_blur | default: 0 }}px; --3d-perspective: {{ block.settings.perspective_3d | default: 1000 }}px; --3d-tilt: {{ block.settings.tilt_3d | default: -22 }}deg; --3d-radius: {{ block.settings.radius_3d | default: 420 }}px; --slider-07-section-height: {{ block.settings.section_height | default: '100vh' }};">
+  {% if block.settings.bg_image != blank %}
+    <div class="main-bg-overlay" style="background-image: url({{ block.settings.bg_image | image_url: width: 2200 }}); background-size: {{ block.settings.bg_image_size | default: 'cover' }};"></div>
+  {% endif %}
+ <div class="banner">
+ <div class="slider" style="--quantity: {{ products_to_show }}">
+ {% for product in slider_collection.products limit: products_to_show %}
+ {% assign active_variant = product.selected_or_first_available_variant %}
+ <div class="item" style="--position: {{ forloop.index }}" 
+      data-image="{{ product.featured_image | image_url: width: 900 }}" 
+      data-title="{{ product.title | escape }}" 
+      data-price="{{ active_variant.price | money_with_currency | escape }}" 
+      data-id="{{ active_variant.id }}"
+      data-available="{{ active_variant.available }}"
+      onclick="updateRingDisplay_{{ block.id }}(this)">
+ {% if product.featured_image %}
+ <img src="{{ product.featured_image | image_url: width: 900 }}" alt="{{ product.title | escape }}" width="{{ product.featured_image.width }}" height="{{ product.featured_image.height }}" loading="lazy">
+{% endif %}
+ </div>
+ {% endfor %}
+ </div>
+ <div class="content display-content">
+  <div class="active-product-display" id="activeDisplay-{{ block.id }}">
+    {% if slider_collection.products.size > 0 %}
+     {% assign initial_product = slider_collection.products.first %}
+     {% assign initial_variant = initial_product.selected_or_first_available_variant %}
+     <button type="button" class="close-display-btn" onclick="closeRingDisplay_{{ block.id }}()" aria-label="Close">
+       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+     </button>
+     <img src="{{ initial_product.featured_image | image_url: width: 600 }}" id="activeImg-{{ block.id }}" alt="{{ initial_product.title | escape }}" width="{{ initial_product.featured_image.width }}" height="{{ initial_product.featured_image.height }}">
+     <div class="product-info-panel">
+       <h2 id="activeTitle-{{ block.id }}">{{ initial_product.title }}</h2>
+       <p id="activePrice-{{ block.id }}">{{ initial_variant.price | money_with_currency }}</p>
+       <form action="{{ routes.cart_add_url }}" method="post" id="activeForm-{{ block.id }}" onsubmit="submitRingAddToCart_{{ block.id }}(event, this);">
+         <input type="hidden" name="id" id="activeId-{{ block.id }}" value="{{ initial_variant.id }}">
+         <input type="hidden" name="quantity" value="1">
+         <button type="submit" class="btn" id="activeButton-{{ block.id }}"{% unless initial_variant.available %} disabled{% endunless %}>{% if initial_variant.available %}Add to Cart{% else %}Sold Out{% endif %}</button>
+       </form>
+       <p class="add-to-cart-feedback" id="activeFeedback-{{ block.id }}" aria-live="polite"></p>
+     </div>
+   {% endif %}
+  </div>
+ </div>
+ </div>
+ </div>
+ <style>
+ @import url('https://fonts.cdnfonts.com/css/ica-rubrik-black');
+ @import url('https://fonts.cdnfonts.com/css/poppins');
+ #{{ section_id }}{
+  background-color: var(--bg-color);
+  min-height: clamp(600px, min(var(--slider-07-section-height), 78vh), 820px);
+  position: relative;
+  overflow: hidden;
+ }
+ #{{ section_id }} .main-bg-overlay {
+   position: absolute;
+   inset: 0;
+   width: 100%;
+   height: 100%;
+   background-repeat: no-repeat;
+   background-position: center;
+   opacity: var(--bg-image-opacity);
+   filter: blur(var(--bg-image-blur));
+   z-index: 0;
+   pointer-events: none;
+ }
+ #{{ section_id }}::before{
+ position: absolute;
+ width: min(1400px, 90vw);
+ top: 10%;
+ left: 50%;
+ height: 90%;
+ transform: translateX(-50%);
+ content: '';
+ {% if block.settings.ambient_image != blank %}
+background-image: url({{ block.settings.ambient_image | image_url: width: 2200 }});
+{% endif %}
+ background-size: 100%;
+ background-repeat: no-repeat;
+ background-position: top center;
+ pointer-events: none;
+ }
+ #{{ section_id }} .banner{
+ width: 100%;
+ height: clamp(600px, min(var(--slider-07-section-height), 78vh), 820px);
+ min-height: 600px;
+text-align: center;
+ overflow: hidden;
+ position: relative;
+ }
+  #{{ section_id }} .banner .slider{
+  position: absolute;
+  width: 200px;
+  height: 250px;
+  top: clamp(96px, 16%, 140px);
+  left: calc(50% - 100px);
+  transform-style: preserve-3d;
+  transform: perspective(var(--3d-perspective));
+  animation: slider07-autoRun 20s linear infinite;
+  z-index: 2;
+  }
+  @keyframes slider07-autoRun{
+  from{ transform: perspective(var(--3d-perspective)) rotateX(var(--3d-tilt)) rotateY(0deg); }
+  to{ transform: perspective(var(--3d-perspective)) rotateX(var(--3d-tilt)) rotateY(360deg); }
+  }
+ #{{ section_id }} .banner .slider .item{
+ position: absolute;
+ inset: 0;
+ transform: rotateY(calc((var(--position) - 1) * (360 / var(--quantity)) * 1deg)) translateZ(var(--3d-radius));
+ cursor: pointer;
+ transition: transform 0.3s ease, filter 0.3s ease;
+ }
+ #{{ section_id }} .banner .slider .item:hover{
+  filter: brightness(1.2);
+ }
+ #{{ section_id }} .banner .slider .item img{
+ width: 100%;
+ height: 100%;
+ object-fit: cover;
+ }
+ #{{ section_id }} .banner .display-content{
+ position: absolute;
+ bottom: clamp(32px, 7%, 72px);
+ left: 50%;
+ transform: translateX(-50%);
+ width: max-content;
+ z-index: 10;
+ pointer-events: auto;
+ }
+
+ #{{ section_id }} .active-product-display {
+  display: none;
+  align-items: center;
+  gap: 2rem;
+   background: rgba(20, 22, 28, 0.6);
+   backdrop-filter: blur(20px);
+   -webkit-backdrop-filter: blur(20px);
+   padding: 1.5rem 3rem;
+   border-radius: 1.5rem;
+   box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+   border: 1px solid rgba(255, 255, 255, 0.08);
+   position: relative;
+ }
+
+ #{{ section_id }} .active-product-display.show {
+  display: flex;
+  animation: slideUpDisplay 0.5s ease forwards;
+ }
+ 
+ #{{ section_id }} .close-display-btn {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+   background: rgba(255,255,255,0.1);
+   color: #fff;
+   border: 1px solid rgba(255,255,255,0.2);
+   width: 35px;
+   height: 35px;
+   border-radius: 50%;
+   cursor: pointer;
+   display: flex;
+   justify-content: center;
+   align-items: center;
+   transition: all 0.3s ease;
+  }
+ 
+  #{{ section_id }} .close-display-btn:hover {
+   background: rgba(255,255,255,0.9);
+   color: #0b0c10;
+  }
+ 
+ @keyframes slideUpDisplay {
+   from { transform: translateY(20px); opacity: 0; }
+   to { transform: translateY(0); opacity: 1; }
+ }
+
+ #{{ section_id }} .active-product-display img {
+   max-width: 200px;
+   max-height: 200px;
+   object-fit: cover;
+   border-radius: 1rem;
+   box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+   transition: src 0.3s ease;
+ }
+
+ #{{ section_id }} .product-info-panel {
+   text-align: left;
+   display: flex;
+   flex-direction: column;
+   gap: 0.5rem;
+ }
+
+ #{{ section_id }} .product-info-panel h2 {
+   margin: 0;
+   font-size: 2rem;
+    font-family: var(--font-heading-family);
+    color: #ffffff;
+    font-weight: 300;
+    letter-spacing: 1px;
+    max-width: 300px;
+  }
+ 
+  #{{ section_id }} .product-info-panel p {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #c5c6c9;
+  }
+ 
+  #{{ section_id }} .product-info-panel .btn {
+    margin-top: 1rem;
+    padding: 0.75rem 2rem;
+    background: #ffffff;
+    color: #0b0c10;
+    border: none;
+    border-radius: 2rem;
+    font-size: 1.1rem;
+    cursor: pointer;
+    font-weight: bold;
+    transition: transform 0.2s, background 0.2s;
+  }
+
+ #{{ section_id }} .product-info-panel .btn[disabled] {
+   opacity: 0.65;
+   cursor: not-allowed;
+   transform: none;
+ }
+
+ #{{ section_id }} .product-info-panel .btn:hover {
+   transform: scale(1.05);
+   background: #000;
+ }
+
+ #{{ section_id }} .product-info-panel .btn[disabled]:hover {
+   background: #ffffff;
+ }
+
+ #{{ section_id }} .add-to-cart-feedback {
+   min-height: 1.25rem;
+   font-size: 0.95rem;
+   color: #d3f9d8;
+ }
+ @media screen and (max-width: 1023px) {
+ #{{ section_id }}{
+ min-height: clamp(500px, min(var(--slider-07-section-height), 72vh), 680px);
+ }
+ #{{ section_id }} .banner{
+ height: clamp(500px, min(var(--slider-07-section-height), 72vh), 680px);
+ min-height: 500px;
+ }
+ #{{ section_id }} .banner .slider{
+ width: 160px;
+ height: 200px;
+ top: clamp(72px, 15%, 110px);
+ left: calc(50% - 80px);
+ }
+  #{{ section_id }} .banner .slider .item{
+  transform: rotateY(calc((var(--position) - 1) * (360 / var(--quantity)) * 1deg)) translateZ(calc(var(--3d-radius) * 0.57));
+  }
+
+ }
+ @media screen and (max-width: 767px) {
+ #{{ section_id }}{
+ min-height: clamp(320px, min(var(--slider-07-section-height), 84vw), 410px);
+ }
+ #{{ section_id }} .banner{
+ height: clamp(320px, min(var(--slider-07-section-height), 84vw), 410px);
+ min-height: 320px;
+ }
+ #{{ section_id }} .banner.ring-display-open{
+ height: clamp(560px, min(var(--slider-07-section-height), 148vw), 680px);
+ }
+ #{{ section_id }} .banner .slider{
+ width: 112px;
+ height: 168px;
+ top: clamp(44px, 14vw, 72px);
+ left: calc(50% - 56px);
+ }
+  #{{ section_id }} .banner .slider .item{
+  transform: rotateY(calc((var(--position) - 1) * (360 / var(--quantity)) * 1deg)) translateZ(calc(var(--3d-radius) * 0.33));
+  }
+ #{{ section_id }} .banner .display-content{
+ top: clamp(240px, 66vw, 300px);
+ bottom: auto;
+ width: min(92vw, 360px);
+ }
+ #{{ section_id }} .active-product-display{
+ flex-direction: column;
+ gap: 1rem;
+ width: 100%;
+ padding: 1.25rem;
+ border-radius: 1rem;
+ }
+ #{{ section_id }} .active-product-display img{
+ max-width: 140px;
+ max-height: 140px;
+ }
+ #{{ section_id }} .product-info-panel{
+ align-items: center;
+ text-align: center;
+ }
+ #{{ section_id }} .product-info-panel h2{
+ font-size: 1.35rem;
+ max-width: 100%;
+ }
+ #{{ section_id }} .product-info-panel p{
+ font-size: 1.1rem;
+ }
+
+ }
+ </style>
+ {% else %}
+ <div class="slider-liquid-empty">Select a collection with products to render this slider.</div>
+{% endif %}
+
+<script>
+  function closeRingDisplay_{{ block.id }}() {
+    var displayPanel = document.getElementById('activeDisplay-{{ block.id }}');
+    if (displayPanel) {
+      displayPanel.classList.remove('show');
+      var banner = displayPanel.closest('.banner');
+      if (banner) banner.classList.remove('ring-display-open');
+    }
+  }
+
+  function updateRingDisplay_{{ block.id }}(element) {
+    var imgSrc = element.getAttribute('data-image');
+    var title = element.getAttribute('data-title');
+    var price = element.getAttribute('data-price');
+    var variantId = element.getAttribute('data-id');
+    var available = element.getAttribute('data-available') === 'true';
+
+    var displayImg = document.getElementById('activeImg-{{ block.id }}');
+    var displayTitle = document.getElementById('activeTitle-{{ block.id }}');
+    var displayPrice = document.getElementById('activePrice-{{ block.id }}');
+    var displayId = document.getElementById('activeId-{{ block.id }}');
+    var displayPanel = document.getElementById('activeDisplay-{{ block.id }}');
+    var displayButton = document.getElementById('activeButton-{{ block.id }}');
+    var displayFeedback = document.getElementById('activeFeedback-{{ block.id }}');
+
+    if (displayImg) displayImg.src = imgSrc;
+    if (displayTitle) displayTitle.textContent = title;
+    if (displayPrice) displayPrice.textContent = price;
+    if (displayId) displayId.value = variantId;
+    if (displayButton) {
+      displayButton.disabled = !available;
+      displayButton.textContent = available ? 'Add to Cart' : 'Sold Out';
+    }
+    if (displayFeedback) displayFeedback.textContent = '';
+
+    // Trigger a small pop animation
+    if(displayPanel) {
+      displayPanel.classList.add('show');
+      var banner = displayPanel.closest('.banner');
+      if (banner) banner.classList.add('ring-display-open');
+      displayPanel.style.transform = 'scale(0.95)';
+      setTimeout(function() {
+        displayPanel.style.transform = 'scale(1)';
+        displayPanel.style.transition = 'transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+      }, 50);
+    }
+  }
+
+  function submitRingAddToCart_{{ block.id }}(event, form) {
+    event.preventDefault();
+
+    var submitButton = document.getElementById('activeButton-{{ block.id }}');
+    var feedback = document.getElementById('activeFeedback-{{ block.id }}');
+    var originalLabel = submitButton ? submitButton.textContent : '';
+    var cartAddUrl = (form.getAttribute('action') || '/cart/add') + '.js';
+
+    if (submitButton && submitButton.disabled) {
+      return false;
+    }
+
+    if (submitButton) {
+      submitButton.disabled = true;
+      submitButton.textContent = 'Adding...';
+    }
+
+    if (feedback) {
+      feedback.textContent = '';
+    }
+
+    fetch(cartAddUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Accept': 'application/json'
+      },
+      body: new URLSearchParams(new FormData(form))
+    })
+      .then(function(response) {
+        if (!response.ok) {
+          return response.json().then(function(data) {
+            throw new Error(data.description || data.message || 'Unable to add this product to cart.');
+          });
+        }
+
+        return response.json();
+      })
+      .then(function() {
+        if (feedback) {
+          feedback.textContent = 'Added to cart.';
+        }
+      })
+      .catch(function(error) {
+        if (feedback) {
+          feedback.textContent = error.message || 'Unable to add this product to cart.';
+        }
+      })
+      .finally(function() {
+        if (submitButton) {
+          submitButton.disabled = false;
+          submitButton.textContent = originalLabel || 'Add to Cart';
+        }
+      });
+
+    return false;
+  }
+</script>
+{% schema %}
+{
+ "name": "Carousel: Orbit Ring",
+ "target": "section",
+ "settings": [
+ {
+ "type": "header",
+ "content": "Content Settings"
+ },
+ {
+ "type": "collection",
+ "id": "selected_collection",
+ "label": "Collection"
+ },
+ {
+ "type": "select",
+ "id": "products_display_mode",
+ "label": "Products to show",
+ "options": [
+ {
+ "value": "limited",
+ "label": "Set number"
+ },
+ {
+ "value": "all",
+ "label": "All products"
+ }
+ ],
+ "default": "limited"
+ },
+ {
+ "type": "range",
+ "id": "products_limit",
+ "label": "Number of products",
+ "min": 4,
+ "max": 16,
+ "step": 1,
+ "default": 10
+ },
+
+ {
+ "type": "header",
+ "content": "Style Settings"
+ },
+ {
+ "type": "text",
+ "id": "section_height",
+ "label": "Section height",
+ "default": "100vh"
+ },
+ {
+ "type": "image_picker",
+ "id": "ambient_image",
+ "label": "Ambient background image"
+ },
+  {
+  "type": "image_picker",
+  "id": "model_image",
+  "label": "Foreground model image"
+  },
+  {
+  "type": "header",
+  "content": "Background Customization"
+  },
+  {
+  "type": "color",
+  "id": "bg_color",
+  "label": "Background Color",
+  "default": "#0b0c10"
+  },
+  {
+  "type": "image_picker",
+  "id": "bg_image",
+  "label": "Background Image"
+  },
+  {
+  "type": "select",
+  "id": "bg_image_size",
+  "label": "Background Image Size",
+  "options": [
+    { "value": "cover", "label": "Cover" },
+    { "value": "contain", "label": "Contain" },
+    { "value": "auto", "label": "Auto" }
+  ],
+  "default": "cover"
+  },
+  {
+  "type": "range",
+  "id": "bg_image_opacity",
+  "label": "Background Image Opacity",
+  "min": 0,
+  "max": 100,
+  "step": 5,
+  "default": 100,
+  "unit": "%"
+  },
+  {
+  "type": "range",
+  "id": "bg_image_blur",
+  "label": "Background Image Blur",
+  "min": 0,
+  "max": 50,
+  "step": 1,
+  "default": 0,
+  "unit": "px"
+  },
+  {
+  "type": "header",
+  "content": "3D Camera Settings"
+  },
+  {
+  "type": "range",
+  "id": "perspective_3d",
+  "label": "3D Perspective (Depth)",
+  "min": 400,
+  "max": 2000,
+  "step": 50,
+  "default": 1000,
+  "unit": "px"
+  },
+  {
+  "type": "range",
+  "id": "tilt_3d",
+  "label": "3D Tilt Angle",
+  "min": -45,
+  "max": 45,
+  "step": 1,
+  "default": -22,
+  "unit": "deg"
+  },
+  {
+  "type": "range",
+  "id": "radius_3d",
+  "label": "Ring Circumference",
+  "info": "Controls how far apart the cards are from each other",
+  "min": 200,
+  "max": 1200,
+  "step": 10,
+  "default": 420,
+  "unit": "px"
+  }
+  ]
+}
+{% endschema %}

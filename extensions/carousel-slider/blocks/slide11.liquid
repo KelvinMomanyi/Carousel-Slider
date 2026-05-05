@@ -1,0 +1,132 @@
+{% liquid
+assign section_id = 'slider-13-' | append: block.id
+if block.settings.selected_collection != blank
+assign slider_collection = collections[block.settings.selected_collection]
+else
+assign slider_collection = collections.all
+endif
+assign products_limit = block.settings.products_limit | default: 8
+assign products_display_mode = block.settings.products_display_mode | default: 'limited'
+assign products_to_show = products_limit
+if products_display_mode == 'all'
+assign products_to_show = slider_collection.products_count | default: slider_collection.products.size
+endif
+%}
+{% if slider_collection != blank and slider_collection.products_count > 0 %}
+{{ 'slider-13.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'slider-13.js' | asset_url }}" defer></script>
+<div id="{{ section_id }}" class="slider-13-root" data-autoplay-speed="{{ block.settings.autoplay_speed | default: 3 }}" {{ block.shopify_attributes }}>
+<div class="slider">
+{% for product in slider_collection.products limit: products_to_show %}
+{% liquid
+assign active_variant = product.selected_or_first_available_variant
+%}
+<article class="item">
+<a href="{{ product.url }}" class="item__media" aria-label="{{ product.title | escape }}">
+{% if product.featured_image %}
+<img
+class="item__image"
+src="{{ product.featured_image | image_url: width: 1200 }}"
+alt="{{ product.title | escape }}"
+width="{{ product.featured_image.width }}"
+height="{{ product.featured_image.height }}"
+loading="lazy"
+>
+{% else %}
+{{ 'product-1' | placeholder_svg_tag: 'item__image item__image--placeholder' }}
+{% endif %}
+</a>
+<div class="item__body">
+<h2>{{ product.title | escape }}</h2>
+<div class="item__price-row">
+{% if active_variant.compare_at_price > active_variant.price %}
+<span class="item__compare">{{ active_variant.compare_at_price | money_with_currency }}</span>
+{% endif %}
+<span class="item__price">{{ active_variant.price | money_with_currency }}</span>
+</div>
+<div class="item__footer">
+<div class="item__actions">
+<form action="{{ routes.cart_add_url }}" method="post" enctype="multipart/form-data" class="item__cart-form" data-slider-13-cart-form>
+<input type="hidden" name="id" value="{{ active_variant.id }}">
+<input type="hidden" name="quantity" value="1">
+<button class="item__cart-button" type="submit"{% unless active_variant.available %} disabled{% endunless %}>
+<span class="item__cart-button-icon" aria-hidden="true">+</span>
+<span class="item__cart-button-copy">
+<span class="item__cart-button-label" data-slider-13-cart-label>{% if active_variant.available %}Add to cart{% else %}Sold out{% endif %}</span>
+</span>
+</button>
+</form>
+<p class="item__cart-feedback" data-slider-13-cart-feedback aria-live="polite"></p>
+</div>
+</div>
+</div>
+</article>
+{% endfor %}
+<div class="slider__controls" role="group" aria-label="Slider controls">
+<button class="slider-13-prev" type="button" aria-label="Previous product">&#8249;</button>
+<button class="slider-13-next" type="button" aria-label="Next product">&#8250;</button>
+</div>
+</div>
+</div>
+<style>
+#{{ section_id }} {
+  min-height: {{ block.settings.section_height }};
+}
+</style>
+
+{% else %}
+<div class="slider-liquid-empty" {{ block.shopify_attributes }}>Select a collection with products to render this slider.</div>
+{% endif %}
+{% schema %}
+{
+"name": "Carousel: Card Stack",
+"settings": [
+{
+"type": "collection",
+"id": "selected_collection",
+"label": "Collection"
+},
+{
+"type": "select",
+"id": "products_display_mode",
+"label": "Products to show",
+"options": [
+{
+"value": "limited",
+"label": "Set number"
+},
+{
+"value": "all",
+"label": "All products"
+}
+],
+"default": "limited"
+},
+{
+"type": "range",
+"id": "products_limit",
+"label": "Number of products",
+"min": 3,
+"max": 10,
+"step": 1,
+"default": 8
+},
+{
+"type": "text",
+"id": "section_height",
+"label": "Section height",
+"default": "560px"
+},
+{
+"type": "range",
+"id": "autoplay_speed",
+"label": "Autoplay speed (seconds)",
+"min": 1,
+"max": 10,
+"step": 1,
+"default": 3
+}
+],
+"target": "section"
+}
+{% endschema %}
