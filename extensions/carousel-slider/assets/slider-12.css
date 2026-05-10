@@ -487,3 +487,70 @@
 .shv-slider-wrapper.has-slider-button-text-color .shv-slider-nav button:hover{
   color:var(--slider-style-button-text-color) !important;
 }
+@media screen and (min-width:1024px){
+  .shv-slider-wrapper .shv-slider-track .shv-slide .slider-img{aspect-ratio:var(--shv-aspect-large);object-fit:var(--shv-fit-large)}
+}
+@media screen and (min-width:678px) and (max-width:1023px){
+  .shv-slider-wrapper .shv-slider-track .shv-slide .slider-img{aspect-ratio:var(--shv-aspect-medium);object-fit:var(--shv-fit-medium)}
+}
+@media screen and (max-width:677px){
+  .shv-slider-wrapper .shv-slider-track .shv-slide .slider-img{aspect-ratio:var(--shv-aspect-small);object-fit:var(--shv-fit-small)}
+}
+.shv-slider-wrapper .shv-slider-track .shv-slide .shv-slide-content{left:clamp(1rem,6vw,5rem);transform:none;background:transparent;border:0;border-radius:0;padding:2rem;width:fit-content;max-width:90%;box-shadow:none;text-align:left;animation:goDarkLeft-shv .68s var(--motion-ease) both}
+@keyframes goDarkLeft-shv{from{opacity:0;transform:translate3d(0,22px,0)}to{opacity:1;transform:translate3d(0,0,0)}}
+@media screen and (max-width:678px){
+  .shv-slider-wrapper .shv-slider-track .shv-slide .shv-slide-content{padding:1.5rem}
+}
+.shv-slider-wrapper .shv-slider-track .shv-slide .shv-slide-title{display:flex;flex-direction:column;align-items:flex-start;gap:.35rem}
+.shv-slider-wrapper .shv-slider-track .shv-slide .price-compare{color:var(--custom-text-color,var(--shv-muted));font-size:calc(var(--custom-price-size,var(--font-heading-scale,1.5rem))*.68);font-weight:var(--font-heading-weight,600);font-family:var(--font-heading-family,var(--font-body-family,inherit));letter-spacing:inherit;text-transform:inherit;text-decoration:line-through;opacity:.72}
+.shv-slider-wrapper .shv-add-to-cart-btn[disabled]{opacity:.65;cursor:not-allowed;transform:none}
+.shv-slider-wrapper.shv-gradient-enabled .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .shv-slide-meta::before,
+.shv-slider-wrapper.shv-gradient-enabled .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .shv-slide-title::before,
+.shv-slider-wrapper.shv-gradient-enabled .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .topic::before,
+.shv-slider-wrapper.shv-gradient-enabled .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .des::before,
+.shv-slider-wrapper.shv-gradient-enabled .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .buttons::before{content:"";position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(to right,color-mix(in srgb,var(--gradient-start) 50%,transparent),color-mix(in srgb,var(--gradient-end) 10%,transparent));z-index:-1;animation:bgAnimate-shv .8s ease-in-out .8s forwards;animation-fill-mode:forwards;border-radius:var(--gradient-border-radius)}
+.shv-slider-wrapper.shv-gradient-pill .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .shv-slide-meta::before,
+.shv-slider-wrapper.shv-gradient-pill .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .shv-slide-title::before,
+.shv-slider-wrapper.shv-gradient-pill .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .topic::before,
+.shv-slider-wrapper.shv-gradient-pill .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .des::before,
+.shv-slider-wrapper.shv-gradient-pill .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .buttons::before{border-radius:9999px}
+.shv-slider-wrapper.shv-gradient-angled-left .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .shv-slide-meta::before,
+.shv-slider-wrapper.shv-gradient-angled-left .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .shv-slide-title::before,
+.shv-slider-wrapper.shv-gradient-angled-left .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .topic::before,
+.shv-slider-wrapper.shv-gradient-angled-left .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .des::before,
+.shv-slider-wrapper.shv-gradient-angled-left .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .buttons::before{clip-path:polygon(0 0,100% 0,95% 100%,0% 100%)}
+.shv-slider-wrapper.shv-gradient-slashed .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .shv-slide-meta::before,
+.shv-slider-wrapper.shv-gradient-slashed .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .shv-slide-title::before,
+.shv-slider-wrapper.shv-gradient-slashed .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .topic::before,
+.shv-slider-wrapper.shv-gradient-slashed .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .des::before,
+.shv-slider-wrapper.shv-gradient-slashed .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .buttons::before{clip-path:polygon(10% 0%,100% 0%,90% 100%,0% 100%)}
+.shv-slider-wrapper.shv-gradient-angled-right .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .shv-slide-meta::before,
+.shv-slider-wrapper.shv-gradient-angled-right .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .shv-slide-title::before,
+.shv-slider-wrapper.shv-gradient-angled-right .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .topic::before,
+.shv-slider-wrapper.shv-gradient-angled-right .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .des::before,
+.shv-slider-wrapper.shv-gradient-angled-right .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .buttons::before{clip-path:polygon(5% 0,100% 0,100% 100%,0% 100%)}
+.shv-slider-wrapper.shv-gradient-chevron-right .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .shv-slide-meta::before,
+.shv-slider-wrapper.shv-gradient-chevron-right .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .shv-slide-title::before,
+.shv-slider-wrapper.shv-gradient-chevron-right .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .topic::before,
+.shv-slider-wrapper.shv-gradient-chevron-right .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .des::before,
+.shv-slider-wrapper.shv-gradient-chevron-right .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .buttons::before{clip-path:polygon(0 0,90% 0,100% 50%,90% 100%,0 100%)}
+.shv-slider-wrapper.shv-gradient-chevron-left .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .shv-slide-meta::before,
+.shv-slider-wrapper.shv-gradient-chevron-left .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .shv-slide-title::before,
+.shv-slider-wrapper.shv-gradient-chevron-left .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .topic::before,
+.shv-slider-wrapper.shv-gradient-chevron-left .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .des::before,
+.shv-slider-wrapper.shv-gradient-chevron-left .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .buttons::before{clip-path:polygon(10% 0,100% 0,100% 100%,10% 100%,0 50%)}
+.shv-slider-wrapper.shv-gradient-notch-right .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .shv-slide-meta::before,
+.shv-slider-wrapper.shv-gradient-notch-right .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .shv-slide-title::before,
+.shv-slider-wrapper.shv-gradient-notch-right .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .topic::before,
+.shv-slider-wrapper.shv-gradient-notch-right .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .des::before,
+.shv-slider-wrapper.shv-gradient-notch-right .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .buttons::before{clip-path:polygon(0 0,100% 0,100% 15%,95% 50%,100% 85%,100% 100%,0 100%)}
+.shv-slider-wrapper.shv-gradient-wave .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .shv-slide-meta::before,
+.shv-slider-wrapper.shv-gradient-wave .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .shv-slide-title::before,
+.shv-slider-wrapper.shv-gradient-wave .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .topic::before,
+.shv-slider-wrapper.shv-gradient-wave .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .des::before,
+.shv-slider-wrapper.shv-gradient-wave .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .buttons::before{clip-path:polygon(0 0,100% 0,100% 85%,95% 90%,90% 95%,85% 100%,0 100%)}
+.shv-slider-wrapper.shv-gradient-diagonal-cut .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .shv-slide-meta::before,
+.shv-slider-wrapper.shv-gradient-diagonal-cut .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .shv-slide-title::before,
+.shv-slider-wrapper.shv-gradient-diagonal-cut .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .topic::before,
+.shv-slider-wrapper.shv-gradient-diagonal-cut .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .des::before,
+.shv-slider-wrapper.shv-gradient-diagonal-cut .shv-slider-track .shv-slide:nth-child(1) .shv-slide-content .buttons::before{clip-path:polygon(0 0,100% 0,85% 100%,0 100%)}
