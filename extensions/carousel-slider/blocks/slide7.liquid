@@ -17,7 +17,14 @@ assign products_to_show = slider_collection.products_count | default: slider_col
 endif
 %}
 {% if slider_collection != blank and slider_collection.products_count > 0 %}
-<div id="{{ section_id }}" class="slider-09-root" data-carousel-billing-gate style="--s09-height: {{ block.settings.section_height }}" {{ block.shopify_attributes }}>
+<div id="{{ section_id }}" class="slider-09-root{% if block.settings.text_color != blank %} has-slider-text-color{% endif %}{% if block.settings.text_font_size != blank %} has-slider-text-size{% endif %}{% if block.settings.button_color != blank %} has-slider-button-color{% endif %}{% if block.settings.button_text_color != blank %} has-slider-button-text-color{% endif %}{% if block.settings.button_font_size != blank %} has-slider-button-size{% endif %}" data-carousel-billing-gate style="
+--s09-height: {{ block.settings.section_height }};
+{% if block.settings.text_color != blank %}--slider-style-text-color: {{ block.settings.text_color }};{% endif %}
+{% if block.settings.text_font_size != blank %}--slider-style-text-size: {{ block.settings.text_font_size }};{% endif %}
+{% if block.settings.button_color != blank %}--slider-style-button-color: {{ block.settings.button_color }};{% endif %}
+{% if block.settings.button_text_color != blank %}--slider-style-button-text-color: {{ block.settings.button_text_color }};{% endif %}
+{% if block.settings.button_font_size != blank %}--slider-style-button-size: {{ block.settings.button_font_size }};{% endif %}
+" {{ block.shopify_attributes }}>
 <div class="carousel">
 <div class="list">
 {% for product in slider_collection.products limit: products_to_show %}
@@ -112,6 +119,37 @@ style="--img-src: url('{{ product.featured_image | image_url: width: 1200 }}'); 
 "id": "section_height",
 "label": "Section height",
 "default": "720px"
+},
+{
+"type": "header",
+"content": "Text and Button Styling"
+},
+{
+"type": "color",
+"id": "text_color",
+"label": "Text color"
+},
+{
+"type": "text",
+"id": "text_font_size",
+"label": "Text font size",
+"info": "Use a CSS size, for example 18px or 1.2rem."
+},
+{
+"type": "color",
+"id": "button_color",
+"label": "Button color"
+},
+{
+"type": "color",
+"id": "button_text_color",
+"label": "Button text color"
+},
+{
+"type": "text",
+"id": "button_font_size",
+"label": "Button font size",
+"info": "Use a CSS size, for example 16px or 1rem."
 },
 {
 "type": "color",

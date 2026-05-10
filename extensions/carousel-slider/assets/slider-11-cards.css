@@ -219,3 +219,41 @@
     padding:0 18px;
   }
 }
+
+.slider-11-root.has-slider-text-color .item .name,
+.slider-11-root.has-slider-text-color .item .price,
+.slider-11-root.has-slider-text-color .item .cart-feedback {
+  color: var(--slider-style-text-color);
+}
+
+.slider-11-root.has-slider-text-size .item .name,
+.slider-11-root.has-slider-text-size .item .price,
+.slider-11-root.has-slider-text-size .item .cart-feedback {
+  font-size: var(--slider-style-text-size);
+}
+
+.slider-11-root.has-slider-button-color .item .add-to-cart,
+.slider-11-root.has-slider-button-color .buttons button {
+  background: var(--slider-style-button-color);
+  border-color: var(--slider-style-button-color);
+}
+
+.slider-11-root.has-slider-button-text-color .item .add-to-cart,
+.slider-11-root.has-slider-button-text-color .buttons button {
+  color: var(--slider-style-button-text-color);
+}
+
+.slider-11-root.has-slider-button-size .item .add-to-cart,
+.slider-11-root.has-slider-button-size .buttons button {
+  font-size: var(--slider-style-button-size);
+}
+
+.slider-11-root.has-slider-button-color .item .add-to-cart:hover:not(:disabled),
+.slider-11-root.has-slider-button-color .buttons button:hover {
+  background: var(--slider-style-button-color);
+}
+
+.slider-11-root.has-slider-button-text-color .item .add-to-cart:hover:not(:disabled),
+.slider-11-root.has-slider-button-text-color .buttons button:hover {
+  color: var(--slider-style-button-text-color);
+}

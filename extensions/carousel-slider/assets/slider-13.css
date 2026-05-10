@@ -617,3 +617,62 @@ font-size: 0.72rem;
   transform: none;
 }
 }
+
+.slider-13-root.has-slider-text-color .item h2,
+.slider-13-root.has-slider-text-color .item__label,
+.slider-13-root.has-slider-text-color .item__price-row,
+.slider-13-root.has-slider-text-color .item__price,
+.slider-13-root.has-slider-text-color .item__compare,
+.slider-13-root.has-slider-text-color .item__cart-feedback {
+  color: var(--slider-style-text-color);
+}
+
+.slider-13-root.has-slider-text-size .item h2,
+.slider-13-root.has-slider-text-size .item__label,
+.slider-13-root.has-slider-text-size .item__price-row,
+.slider-13-root.has-slider-text-size .item__price,
+.slider-13-root.has-slider-text-size .item__compare,
+.slider-13-root.has-slider-text-size .item__cart-feedback {
+  font-size: var(--slider-style-text-size);
+}
+
+.slider-13-root.has-slider-button-color .item__cart-button,
+.slider-13-root.has-slider-button-color .slider-13-prev,
+.slider-13-root.has-slider-button-color .slider-13-next {
+  background: var(--slider-style-button-color);
+  border-color: var(--slider-style-button-color);
+}
+
+.slider-13-root.has-slider-button-text-color .item__cart-button,
+.slider-13-root.has-slider-button-text-color .slider-13-prev,
+.slider-13-root.has-slider-button-text-color .slider-13-next {
+  color: var(--slider-style-button-text-color);
+}
+
+.slider-13-root.has-slider-button-size .item__cart-button,
+.slider-13-root.has-slider-button-size .slider-13-prev,
+.slider-13-root.has-slider-button-size .slider-13-next {
+  font-size: var(--slider-style-button-size);
+}
+
+.slider-13-root.has-slider-button-text-color .item__cart-button-label,
+.slider-13-root.has-slider-button-text-color .item__cart-button-icon {
+  color: var(--slider-style-button-text-color);
+}
+
+.slider-13-root.has-slider-button-size .item__cart-button-label,
+.slider-13-root.has-slider-button-size .item__cart-button-icon {
+  font-size: var(--slider-style-button-size);
+}
+
+.slider-13-root.has-slider-button-color .item__cart-button:hover:not(:disabled),
+.slider-13-root.has-slider-button-color .slider-13-prev:hover,
+.slider-13-root.has-slider-button-color .slider-13-next:hover {
+  background: var(--slider-style-button-color);
+}
+
+.slider-13-root.has-slider-button-text-color .item__cart-button:hover:not(:disabled),
+.slider-13-root.has-slider-button-text-color .slider-13-prev:hover,
+.slider-13-root.has-slider-button-text-color .slider-13-next:hover {
+  color: var(--slider-style-button-text-color);
+}

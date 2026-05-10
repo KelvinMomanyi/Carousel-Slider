@@ -520,3 +520,52 @@
     width: max-content;
   }
 }
+
+.slider-03-root.has-slider-text-color .introduce .productName,
+.slider-03-root.has-slider-text-color .introduce .productPrice,
+.slider-03-root.has-slider-text-color .carousel.showDetail .detail .title,
+.slider-03-root.has-slider-text-color .carousel.showDetail .detail .des,
+.slider-03-root.has-slider-text-color .carousel.showDetail .detail .specifications p,
+.slider-03-root.has-slider-text-color .cartFeedback {
+  color: var(--slider-style-text-color);
+}
+
+.slider-03-root.has-slider-text-size .introduce .productName,
+.slider-03-root.has-slider-text-size .introduce .productPrice,
+.slider-03-root.has-slider-text-size .carousel.showDetail .detail .title,
+.slider-03-root.has-slider-text-size .carousel.showDetail .detail .des,
+.slider-03-root.has-slider-text-size .carousel.showDetail .detail .specifications p,
+.slider-03-root.has-slider-text-size .cartFeedback {
+  font-size: var(--slider-style-text-size);
+}
+
+.slider-03-root.has-slider-button-color .introduce .addToCart,
+.slider-03-root.has-slider-button-color .carousel.showDetail .checkout button,
+.slider-03-root.has-slider-button-color .arrows button {
+  background: var(--slider-style-button-color);
+  border-color: var(--slider-style-button-color);
+}
+
+.slider-03-root.has-slider-button-text-color .introduce .addToCart,
+.slider-03-root.has-slider-button-text-color .carousel.showDetail .checkout button,
+.slider-03-root.has-slider-button-text-color .arrows button {
+  color: var(--slider-style-button-text-color);
+}
+
+.slider-03-root.has-slider-button-size .introduce .addToCart,
+.slider-03-root.has-slider-button-size .carousel.showDetail .checkout button,
+.slider-03-root.has-slider-button-size .arrows button {
+  font-size: var(--slider-style-button-size);
+}
+
+.slider-03-root.has-slider-button-color .introduce .addToCart:hover:not(:disabled),
+.slider-03-root.has-slider-button-color .carousel.showDetail .checkout button:hover:not(:disabled),
+.slider-03-root.has-slider-button-color .arrows button:hover {
+  background: var(--slider-style-button-color);
+}
+
+.slider-03-root.has-slider-button-text-color .introduce .addToCart:hover:not(:disabled),
+.slider-03-root.has-slider-button-text-color .carousel.showDetail .checkout button:hover:not(:disabled),
+.slider-03-root.has-slider-button-text-color .arrows button:hover {
+  color: var(--slider-style-button-text-color);
+}

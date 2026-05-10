@@ -14,7 +14,20 @@ else
  endif
 %}
 {% if slider_collection != blank and slider_collection.products_count > 0 %}
- <div id="{{ section_id }}" class="slider-07-root" data-carousel-billing-gate style="--bg-color: {{ block.settings.bg_color | default: '#0b0c10' }}; --bg-image-opacity: {{ block.settings.bg_image_opacity | divided_by: 100.0 | default: 1 }}; --bg-image-blur: {{ block.settings.bg_image_blur | default: 0 }}px; --3d-perspective: {{ block.settings.perspective_3d | default: 1000 }}px; --3d-tilt: {{ block.settings.tilt_3d | default: -22 }}deg; --3d-radius: {{ block.settings.radius_3d | default: 420 }}px; --slider-07-section-height: {{ block.settings.section_height | default: '100vh' }};">
+ <div id="{{ section_id }}" class="slider-07-root{% if block.settings.text_color != blank %} has-slider-text-color{% endif %}{% if block.settings.text_font_size != blank %} has-slider-text-size{% endif %}{% if block.settings.button_color != blank %} has-slider-button-color{% endif %}{% if block.settings.button_text_color != blank %} has-slider-button-text-color{% endif %}{% if block.settings.button_font_size != blank %} has-slider-button-size{% endif %}" data-carousel-billing-gate style="
+ --bg-color: {{ block.settings.bg_color | default: '#0b0c10' }};
+ --bg-image-opacity: {{ block.settings.bg_image_opacity | divided_by: 100.0 | default: 1 }};
+ --bg-image-blur: {{ block.settings.bg_image_blur | default: 0 }}px;
+ --3d-perspective: {{ block.settings.perspective_3d | default: 1000 }}px;
+ --3d-tilt: {{ block.settings.tilt_3d | default: -22 }}deg;
+ --3d-radius: {{ block.settings.radius_3d | default: 420 }}px;
+ --slider-07-section-height: {{ block.settings.section_height | default: '100vh' }};
+ {% if block.settings.text_color != blank %}--slider-style-text-color: {{ block.settings.text_color }};{% endif %}
+ {% if block.settings.text_font_size != blank %}--slider-style-text-size: {{ block.settings.text_font_size }};{% endif %}
+ {% if block.settings.button_color != blank %}--slider-style-button-color: {{ block.settings.button_color }};{% endif %}
+ {% if block.settings.button_text_color != blank %}--slider-style-button-text-color: {{ block.settings.button_text_color }};{% endif %}
+ {% if block.settings.button_font_size != blank %}--slider-style-button-size: {{ block.settings.button_font_size }};{% endif %}
+ ">
   {% if block.settings.bg_image != blank %}
     <div class="main-bg-overlay" style="background-image: url({{ block.settings.bg_image | image_url: width: 2200 }}); background-size: {{ block.settings.bg_image_size | default: 'cover' }};"></div>
   {% endif %}
@@ -256,6 +269,37 @@ text-align: center;
    font-size: 0.95rem;
    color: #d3f9d8;
  }
+ #{{ section_id }}.has-slider-text-color .product-info-panel h2,
+ #{{ section_id }}.has-slider-text-color .product-info-panel p,
+ #{{ section_id }}.has-slider-text-color .add-to-cart-feedback {
+   color: var(--slider-style-text-color);
+ }
+ #{{ section_id }}.has-slider-text-size .product-info-panel h2,
+ #{{ section_id }}.has-slider-text-size .product-info-panel p,
+ #{{ section_id }}.has-slider-text-size .add-to-cart-feedback {
+   font-size: var(--slider-style-text-size);
+ }
+ #{{ section_id }}.has-slider-button-color .product-info-panel .btn,
+ #{{ section_id }}.has-slider-button-color .close-display-btn {
+   background: var(--slider-style-button-color);
+   border-color: var(--slider-style-button-color);
+ }
+ #{{ section_id }}.has-slider-button-text-color .product-info-panel .btn,
+ #{{ section_id }}.has-slider-button-text-color .close-display-btn {
+   color: var(--slider-style-button-text-color);
+ }
+ #{{ section_id }}.has-slider-button-size .product-info-panel .btn,
+ #{{ section_id }}.has-slider-button-size .close-display-btn {
+   font-size: var(--slider-style-button-size);
+ }
+ #{{ section_id }}.has-slider-button-color .product-info-panel .btn:hover:not(:disabled),
+ #{{ section_id }}.has-slider-button-color .close-display-btn:hover {
+   background: var(--slider-style-button-color);
+ }
+ #{{ section_id }}.has-slider-button-text-color .product-info-panel .btn:hover:not(:disabled),
+ #{{ section_id }}.has-slider-button-text-color .close-display-btn:hover {
+   color: var(--slider-style-button-text-color);
+ }
  @media screen and (max-width: 1023px) {
  #{{ section_id }}{
  min-height: clamp(500px, min(var(--slider-07-section-height), 72vh), 680px);
@@ -484,6 +528,37 @@ text-align: center;
  "id": "section_height",
  "label": "Section height",
  "default": "100vh"
+ },
+ {
+ "type": "header",
+ "content": "Text and Button Styling"
+ },
+ {
+ "type": "color",
+ "id": "text_color",
+ "label": "Text color"
+ },
+ {
+ "type": "text",
+ "id": "text_font_size",
+ "label": "Text font size",
+ "info": "Use a CSS size, for example 18px or 1.2rem."
+ },
+ {
+ "type": "color",
+ "id": "button_color",
+ "label": "Button color"
+ },
+ {
+ "type": "color",
+ "id": "button_text_color",
+ "label": "Button text color"
+ },
+ {
+ "type": "text",
+ "id": "button_font_size",
+ "label": "Button font size",
+ "info": "Use a CSS size, for example 16px or 1rem."
  },
  {
  "type": "image_picker",

@@ -60,3 +60,41 @@
 .slider-09-root .carousel.effect { --slider09-active-from: 300px; --slider09-item-to: -300px; --slider09-clip-edge: 100%; }
 .slider-09-root .carousel.effect .item.active { --transform-from: var(--slider09-active-from); --transform-to: 0px; }
 .slider-09-root .carousel.effect .item { --transform-from: 0; --transform-to: var(--slider09-item-to); }
+
+.slider-09-root.has-slider-text-color .carousel .list .item .info .title,
+.slider-09-root.has-slider-text-color .carousel .list .item .info .price,
+.slider-09-root.has-slider-text-color .carousel .list .item .cart-feedback {
+  color: var(--slider-style-text-color);
+}
+
+.slider-09-root.has-slider-text-size .carousel .list .item .info .title,
+.slider-09-root.has-slider-text-size .carousel .list .item .info .price,
+.slider-09-root.has-slider-text-size .carousel .list .item .cart-feedback {
+  font-size: var(--slider-style-text-size);
+}
+
+.slider-09-root.has-slider-button-color .carousel .list .item .add-to-cart,
+.slider-09-root.has-slider-button-color .arrows button {
+  background: var(--slider-style-button-color);
+  border-color: var(--slider-style-button-color);
+}
+
+.slider-09-root.has-slider-button-text-color .carousel .list .item .add-to-cart,
+.slider-09-root.has-slider-button-text-color .arrows button {
+  color: var(--slider-style-button-text-color);
+}
+
+.slider-09-root.has-slider-button-size .carousel .list .item .add-to-cart,
+.slider-09-root.has-slider-button-size .arrows button {
+  font-size: var(--slider-style-button-size);
+}
+
+.slider-09-root.has-slider-button-color .carousel .list .item .add-to-cart:hover:not(:disabled),
+.slider-09-root.has-slider-button-color .arrows button:hover {
+  background: var(--slider-style-button-color);
+}
+
+.slider-09-root.has-slider-button-text-color .carousel .list .item .add-to-cart:hover:not(:disabled),
+.slider-09-root.has-slider-button-text-color .arrows button:hover {
+  color: var(--slider-style-button-text-color);
+}

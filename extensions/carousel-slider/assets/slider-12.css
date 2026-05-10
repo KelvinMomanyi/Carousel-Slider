@@ -437,3 +437,53 @@
   from{transform:translate3d(0,100px,0);filter:blur(33px);opacity:0}
   to{transform:translate3d(0,0,0);filter:blur(0);opacity:1}
 }
+
+.shv-slider-wrapper.has-slider-text-color .shv-slider-track .shv-slide .shv-slide-meta a,
+.shv-slider-wrapper.has-slider-text-color .shv-slider-track .shv-slide .price-span,
+.shv-slider-wrapper.has-slider-text-color .shv-slider-track .shv-slide .price-compare,
+.shv-slider-wrapper.has-slider-text-color .shv-cart-feedback{
+  color:var(--slider-style-text-color) !important;
+}
+
+.shv-slider-wrapper.has-slider-text-size .shv-slider-track .shv-slide .shv-slide-meta a,
+.shv-slider-wrapper.has-slider-text-size .shv-slider-track .shv-slide .price-span,
+.shv-slider-wrapper.has-slider-text-size .shv-slider-track .shv-slide .price-compare,
+.shv-slider-wrapper.has-slider-text-size .shv-cart-feedback{
+  font-size:var(--slider-style-text-size) !important;
+}
+
+.shv-slider-wrapper.has-slider-button-color .shv-add-to-cart-btn,
+.shv-slider-wrapper.has-slider-button-color .shv-slider-nav button{
+  background:var(--slider-style-button-color) !important;
+  border-color:var(--slider-style-button-color) !important;
+}
+
+.shv-slider-wrapper.has-slider-button-text-color .shv-add-to-cart-btn,
+.shv-slider-wrapper.has-slider-button-text-color .shv-slider-nav button{
+  color:var(--slider-style-button-text-color) !important;
+}
+
+.shv-slider-wrapper.has-slider-button-size .shv-add-to-cart-btn,
+.shv-slider-wrapper.has-slider-button-size .shv-slider-nav button{
+  font-size:var(--slider-style-button-size) !important;
+}
+
+.shv-slider-wrapper.has-slider-button-text-color .shv-add-to-cart-btn svg,
+.shv-slider-wrapper.has-slider-button-text-color .shv-add-to-cart-btn p{
+  color:var(--slider-style-button-text-color) !important;
+}
+
+.shv-slider-wrapper.has-slider-button-size .shv-add-to-cart-btn svg,
+.shv-slider-wrapper.has-slider-button-size .shv-add-to-cart-btn p{
+  font-size:var(--slider-style-button-size) !important;
+}
+
+.shv-slider-wrapper.has-slider-button-color .shv-add-to-cart-btn:hover,
+.shv-slider-wrapper.has-slider-button-color .shv-slider-nav button:hover{
+  background:var(--slider-style-button-color) !important;
+}
+
+.shv-slider-wrapper.has-slider-button-text-color .shv-add-to-cart-btn:hover,
+.shv-slider-wrapper.has-slider-button-text-color .shv-slider-nav button:hover{
+  color:var(--slider-style-button-text-color) !important;
+}

@@ -18,38 +18,228 @@ assign use_custom_colors = false
 if block.settings.color_scheme_mode == 'custom'
 assign use_custom_colors = true
 endif
+assign parent_color_scheme = section.settings.color_scheme
+assign has_parent_color_scheme = false
+if parent_color_scheme != blank and parent_color_scheme.settings != blank
+assign has_parent_color_scheme = true
+endif
+assign effective_background_color = blank
+assign effective_text_color = blank
+assign effective_button_color = blank
+assign effective_button_text_color = blank
+assign effective_outline_color = blank
+assign effective_error_color = blank
+if has_parent_color_scheme
+assign effective_background_color = parent_color_scheme.settings.background
+assign effective_text_color = parent_color_scheme.settings.text
+assign effective_button_color = parent_color_scheme.settings.button
+assign effective_button_text_color = parent_color_scheme.settings.button_label
+assign effective_outline_color = parent_color_scheme.settings.secondary_button_label
+assign effective_error_color = parent_color_scheme.settings.error
+endif
+if use_custom_colors
+if block.settings.custom_background_color != blank
+assign effective_background_color = block.settings.custom_background_color
+endif
+if block.settings.custom_text_color != blank
+assign effective_text_color = block.settings.custom_text_color
+endif
+if block.settings.custom_button_color != blank
+assign effective_button_color = block.settings.custom_button_color
+endif
+if block.settings.custom_button_text_color != blank
+assign effective_button_text_color = block.settings.custom_button_text_color
+endif
+if block.settings.custom_outline_color != blank
+assign effective_outline_color = block.settings.custom_outline_color
+endif
+endif
+assign readable_text_color = blank
+assign readable_text_rgb = blank
+assign readable_button_text_color = blank
+assign readable_button_text_rgb = blank
+assign enforce_readable_text = false
+assign enforce_readable_accent = false
+assign enforce_readable_outline = false
+assign enforce_readable_button_text = false
+assign enforce_readable_error = false
+if effective_background_color != blank
+assign dark_text_contrast = effective_background_color | color_contrast: '#000000'
+assign light_text_contrast = effective_background_color | color_contrast: '#ffffff'
+if dark_text_contrast > light_text_contrast
+assign readable_text_color = '#000000'
+assign readable_text_rgb = '0, 0, 0'
+else
+assign readable_text_color = '#ffffff'
+assign readable_text_rgb = '255, 255, 255'
+endif
+if effective_text_color != blank
+assign text_contrast = effective_background_color | color_contrast: effective_text_color
+if text_contrast < 4.5
+assign enforce_readable_text = true
+endif
+else
+assign enforce_readable_text = true
+endif
+if effective_button_color != blank
+assign accent_contrast = effective_background_color | color_contrast: effective_button_color
+if accent_contrast < 4.5
+assign enforce_readable_accent = true
+endif
+endif
+if effective_outline_color != blank
+assign outline_contrast = effective_background_color | color_contrast: effective_outline_color
+if outline_contrast < 4.5
+assign enforce_readable_outline = true
+endif
+endif
+if effective_error_color != blank
+assign error_contrast = effective_background_color | color_contrast: effective_error_color
+if error_contrast < 4.5
+assign enforce_readable_error = true
+endif
+endif
+endif
+assign effective_button_surface_color = effective_button_color
+if enforce_readable_accent and readable_text_color != blank
+assign effective_button_surface_color = readable_text_color
+endif
+assign effective_button_gradient_end_color = effective_outline_color
+if enforce_readable_outline and readable_text_color != blank
+assign effective_button_gradient_end_color = readable_text_color
+endif
+if effective_button_surface_color != blank
+assign dark_button_text_contrast = effective_button_surface_color | color_contrast: '#000000'
+assign light_button_text_contrast = effective_button_surface_color | color_contrast: '#ffffff'
+if effective_button_gradient_end_color != blank
+assign dark_button_end_contrast = effective_button_gradient_end_color | color_contrast: '#000000'
+assign light_button_end_contrast = effective_button_gradient_end_color | color_contrast: '#ffffff'
+if dark_button_end_contrast < dark_button_text_contrast
+assign dark_button_text_contrast = dark_button_end_contrast
+endif
+if light_button_end_contrast < light_button_text_contrast
+assign light_button_text_contrast = light_button_end_contrast
+endif
+endif
+if dark_button_text_contrast > light_button_text_contrast
+assign readable_button_text_color = '#000000'
+assign readable_button_text_rgb = '0, 0, 0'
+else
+assign readable_button_text_color = '#ffffff'
+assign readable_button_text_rgb = '255, 255, 255'
+endif
+if effective_button_text_color != blank
+assign button_text_contrast = effective_button_surface_color | color_contrast: effective_button_text_color
+if effective_button_gradient_end_color != blank
+assign button_text_end_contrast = effective_button_gradient_end_color | color_contrast: effective_button_text_color
+if button_text_end_contrast < button_text_contrast
+assign button_text_contrast = button_text_end_contrast
+endif
+endif
+if button_text_contrast < 4.5
+assign enforce_readable_button_text = true
+endif
+else
+assign enforce_readable_button_text = true
+endif
+endif
 %}
 {% if slider_collection != blank and slider_collection.products_count > 0 %}
 <div
 id="{{ section_id }}"
-class="slider-10-root gradient" data-block-id="{{ block.id }}"
+class="slider-10-root gradient{% if block.settings.text_color != blank %} has-slider-text-color{% endif %}{% if block.settings.text_font_size != blank %} has-slider-text-size{% endif %}{% if block.settings.button_color != blank %} has-slider-button-color{% endif %}{% if block.settings.button_text_color != blank %} has-slider-button-text-color{% endif %}{% if block.settings.button_font_size != blank %} has-slider-button-size{% endif %}" data-block-id="{{ block.id }}"
 data-carousel-billing-gate
 style="
+{% if block.settings.text_color != blank %}
+  --slider-style-text-color: {{ block.settings.text_color }};
+{% endif %}
+{% if block.settings.text_font_size != blank %}
+  --slider-style-text-size: {{ block.settings.text_font_size }};
+{% endif %}
+{% if block.settings.button_color != blank %}
+  --slider-style-button-color: {{ block.settings.button_color }};
+{% endif %}
+{% if block.settings.button_text_color != blank %}
+  --slider-style-button-text-color: {{ block.settings.button_text_color }};
+{% endif %}
+{% if block.settings.button_font_size != blank %}
+  --slider-style-button-size: {{ block.settings.button_font_size }};
+{% endif %}
+{% if has_parent_color_scheme %}
+  {% if parent_color_scheme.settings.background != blank %}
+    --slider-background-rgb: {{ parent_color_scheme.settings.background.red }}, {{ parent_color_scheme.settings.background.green }}, {{ parent_color_scheme.settings.background.blue }};
+    --slider-background: {{ parent_color_scheme.settings.background }};
+  {% endif %}
+  {% if parent_color_scheme.settings.background_gradient != blank %}
+    --slider-custom-background: {{ parent_color_scheme.settings.background_gradient }};
+  {% endif %}
+  {% if parent_color_scheme.settings.text != blank %}
+    --slider-foreground-rgb: {{ parent_color_scheme.settings.text.red }}, {{ parent_color_scheme.settings.text.green }}, {{ parent_color_scheme.settings.text.blue }};
+    --slider-foreground: {{ parent_color_scheme.settings.text }};
+  {% endif %}
+  {% if parent_color_scheme.settings.button != blank %}
+    --slider-button-rgb: {{ parent_color_scheme.settings.button.red }}, {{ parent_color_scheme.settings.button.green }}, {{ parent_color_scheme.settings.button.blue }};
+    --slider-accent: {{ parent_color_scheme.settings.button }};
+  {% endif %}
+  {% if parent_color_scheme.settings.secondary_button_label != blank %}
+    --slider-secondary-rgb: {{ parent_color_scheme.settings.secondary_button_label.red }}, {{ parent_color_scheme.settings.secondary_button_label.green }}, {{ parent_color_scheme.settings.secondary_button_label.blue }};
+    --slider-accent-secondary: {{ parent_color_scheme.settings.secondary_button_label }};
+  {% endif %}
+  {% if parent_color_scheme.settings.button_label != blank %}
+    --slider-button-text-rgb: {{ parent_color_scheme.settings.button_label.red }}, {{ parent_color_scheme.settings.button_label.green }}, {{ parent_color_scheme.settings.button_label.blue }};
+    --slider-on-accent: {{ parent_color_scheme.settings.button_label }};
+  {% endif %}
+  {% if parent_color_scheme.settings.shadow != blank %}
+    --slider-shadow-rgb: {{ parent_color_scheme.settings.shadow.red }}, {{ parent_color_scheme.settings.shadow.green }}, {{ parent_color_scheme.settings.shadow.blue }};
+  {% endif %}
+{% endif %}
 {% if use_custom_colors and block.settings.custom_background_color != blank %}
---slider-background-rgb: {{ block.settings.custom_background_color.red }}, {{ block.settings.custom_background_color.green }}, {{ block.settings.custom_background_color.blue }};
---slider-background: {{ block.settings.custom_background_color }};
+  --slider-background-rgb: {{ block.settings.custom_background_color.red }}, {{ block.settings.custom_background_color.green }}, {{ block.settings.custom_background_color.blue }};
+  --slider-background: {{ block.settings.custom_background_color }};
 {% endif %}
 {% if use_custom_colors and block.settings.custom_text_color != blank %}
---slider-foreground-rgb: {{ block.settings.custom_text_color.red }}, {{ block.settings.custom_text_color.green }}, {{ block.settings.custom_text_color.blue }};
---slider-foreground: {{ block.settings.custom_text_color }};
+  --slider-foreground-rgb: {{ block.settings.custom_text_color.red }}, {{ block.settings.custom_text_color.green }}, {{ block.settings.custom_text_color.blue }};
+  --slider-foreground: {{ block.settings.custom_text_color }};
 {% endif %}
 {% if use_custom_colors and block.settings.custom_button_color != blank %}
---slider-button-rgb: {{ block.settings.custom_button_color.red }}, {{ block.settings.custom_button_color.green }}, {{ block.settings.custom_button_color.blue }};
---slider-accent: {{ block.settings.custom_button_color }};
+  --slider-button-rgb: {{ block.settings.custom_button_color.red }}, {{ block.settings.custom_button_color.green }}, {{ block.settings.custom_button_color.blue }};
+  --slider-accent: {{ block.settings.custom_button_color }};
 {% endif %}
 {% if use_custom_colors and block.settings.custom_outline_color != blank %}
---slider-secondary-rgb: {{ block.settings.custom_outline_color.red }}, {{ block.settings.custom_outline_color.green }}, {{ block.settings.custom_outline_color.blue }};
---slider-accent-secondary: {{ block.settings.custom_outline_color }};
+  --slider-secondary-rgb: {{ block.settings.custom_outline_color.red }}, {{ block.settings.custom_outline_color.green }}, {{ block.settings.custom_outline_color.blue }};
+  --slider-accent-secondary: {{ block.settings.custom_outline_color }};
 {% endif %}
 {% if use_custom_colors and block.settings.custom_button_text_color != blank %}
---slider-button-text-rgb: {{ block.settings.custom_button_text_color.red }}, {{ block.settings.custom_button_text_color.green }}, {{ block.settings.custom_button_text_color.blue }};
---slider-on-accent: {{ block.settings.custom_button_text_color }};
+  --slider-button-text-rgb: {{ block.settings.custom_button_text_color.red }}, {{ block.settings.custom_button_text_color.green }}, {{ block.settings.custom_button_text_color.blue }};
+  --slider-on-accent: {{ block.settings.custom_button_text_color }};
 {% endif %}
 {% if use_custom_colors and block.settings.custom_shadow_color != blank %}
---slider-shadow-rgb: {{ block.settings.custom_shadow_color.red }}, {{ block.settings.custom_shadow_color.green }}, {{ block.settings.custom_shadow_color.blue }};
+  --slider-shadow-rgb: {{ block.settings.custom_shadow_color.red }}, {{ block.settings.custom_shadow_color.green }}, {{ block.settings.custom_shadow_color.blue }};
 {% endif %}
 {% if use_custom_colors and block.settings.custom_background_gradient != blank %}
---slider-custom-background: {{ block.settings.custom_background_gradient }};
+  --slider-custom-background: {{ block.settings.custom_background_gradient }};
+{% elsif use_custom_colors and block.settings.custom_background_color != blank %}
+  --slider-custom-background: {{ block.settings.custom_background_color }};
+{% endif %}
+{% if enforce_readable_text %}
+  --slider-foreground-rgb: {{ readable_text_rgb }};
+  --slider-foreground: {{ readable_text_color }};
+{% endif %}
+{% if enforce_readable_accent %}
+  --slider-button-rgb: {{ readable_text_rgb }};
+  --slider-accent: {{ readable_text_color }};
+{% endif %}
+{% if enforce_readable_outline %}
+  --slider-secondary-rgb: {{ readable_text_rgb }};
+  --slider-accent-secondary: {{ readable_text_color }};
+{% endif %}
+{% if enforce_readable_button_text %}
+  --slider-button-text-rgb: {{ readable_button_text_rgb }};
+  --slider-on-accent: {{ readable_button_text_color }};
+{% endif %}
+{% if enforce_readable_error %}
+  --slider-error-rgb: {{ readable_text_rgb }};
+  --slider-error: {{ readable_text_color }};
 {% endif %}
 --s10-height: {{ block.settings.section_height }};
 "
@@ -193,6 +383,37 @@ style="
 "id": "section_height",
 "label": "Section height",
 "default": "700px"
+},
+{
+"type": "header",
+"content": "Text and Button Styling"
+},
+{
+"type": "color",
+"id": "text_color",
+"label": "Text color"
+},
+{
+"type": "text",
+"id": "text_font_size",
+"label": "Text font size",
+"info": "Use a CSS size, for example 18px or 1.2rem."
+},
+{
+"type": "color",
+"id": "button_color",
+"label": "Button color"
+},
+{
+"type": "color",
+"id": "button_text_color",
+"label": "Button text color"
+},
+{
+"type": "text",
+"id": "button_font_size",
+"label": "Button font size",
+"info": "Use a CSS size, for example 16px or 1rem."
 }
 ],
 "target": "section"
