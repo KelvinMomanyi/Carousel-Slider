@@ -1,3 +1,4 @@
+{% render 'billing-gate' %}
 {% liquid
  assign section_id = 'slider-07-' | append: block.id
 if block.settings.selected_collection != blank
@@ -13,7 +14,7 @@ else
  endif
 %}
 {% if slider_collection != blank and slider_collection.products_count > 0 %}
- <div id="{{ section_id }}" class="slider-07-root" style="--bg-color: {{ block.settings.bg_color | default: '#0b0c10' }}; --bg-image-opacity: {{ block.settings.bg_image_opacity | divided_by: 100.0 | default: 1 }}; --bg-image-blur: {{ block.settings.bg_image_blur | default: 0 }}px; --3d-perspective: {{ block.settings.perspective_3d | default: 1000 }}px; --3d-tilt: {{ block.settings.tilt_3d | default: -22 }}deg; --3d-radius: {{ block.settings.radius_3d | default: 420 }}px; --slider-07-section-height: {{ block.settings.section_height | default: '100vh' }};">
+ <div id="{{ section_id }}" class="slider-07-root" data-carousel-billing-gate style="--bg-color: {{ block.settings.bg_color | default: '#0b0c10' }}; --bg-image-opacity: {{ block.settings.bg_image_opacity | divided_by: 100.0 | default: 1 }}; --bg-image-blur: {{ block.settings.bg_image_blur | default: 0 }}px; --3d-perspective: {{ block.settings.perspective_3d | default: 1000 }}px; --3d-tilt: {{ block.settings.tilt_3d | default: -22 }}deg; --3d-radius: {{ block.settings.radius_3d | default: 420 }}px; --slider-07-section-height: {{ block.settings.section_height | default: '100vh' }};">
   {% if block.settings.bg_image != blank %}
     <div class="main-bg-overlay" style="background-image: url({{ block.settings.bg_image | image_url: width: 2200 }}); background-size: {{ block.settings.bg_image_size | default: 'cover' }};"></div>
   {% endif %}

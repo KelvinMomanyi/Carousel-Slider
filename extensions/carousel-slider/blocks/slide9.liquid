@@ -1,3 +1,4 @@
+{% render 'billing-gate' %}
 {% liquid
 assign section_id = 'slider-11-' | append: block.id
 if block.settings.selected_collection != blank
@@ -15,7 +16,7 @@ endif
 {% if slider_collection != blank and slider_collection.products_count > 0 %}
 {{ 'slider-11-cards.css' | asset_url | stylesheet_tag }}
 <script src="{{ 'slider-11-cards.js' | asset_url }}" defer></script>
-<div id="{{ section_id }}" class="slider-11-root gradient" style="--slider-11-height: {{ block.settings.section_height }};" data-slider-11 {{ block.shopify_attributes }}>
+<div id="{{ section_id }}" class="slider-11-root gradient" data-carousel-billing-gate style="--slider-11-height: {{ block.settings.section_height }};" data-slider-11 {{ block.shopify_attributes }}>
 <div class="container">
 <div id="slide-{{ block.id }}" data-slider-11-track>
 {% for product in slider_collection.products limit: products_to_show %}

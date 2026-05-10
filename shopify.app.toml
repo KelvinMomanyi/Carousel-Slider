@@ -28,5 +28,14 @@ api_version = "2025-04"
   uri = "/webhooks/app/privacy"
   compliance_topics = [ "customers/data_request", "customers/redact", "shop/redact" ]
 
+  [[webhooks.subscriptions]]
+  topics = [ "shop/update" ]
+  uri = "/webhooks/shop/update"
+
+[app_proxy]
+url = "https://carouselslider-sandy.vercel.app/proxy"
+subpath = "carousel"
+prefix = "apps"
+
 [pos]
 embedded = false

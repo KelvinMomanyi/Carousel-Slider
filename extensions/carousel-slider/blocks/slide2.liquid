@@ -1,3 +1,4 @@
+{% render 'billing-gate' %}
 {% liquid
 assign section_id = 'slider-03-' | append: block.id
 if block.settings.selected_collection != blank
@@ -19,6 +20,7 @@ endif
 id="{{ section_id }}"
 class="slider-03-root"
 data-slider-03
+data-carousel-billing-gate
 style="--slider-03-height: {{ block.settings.section_height }};"
 {{ block.shopify_attributes }}
 >

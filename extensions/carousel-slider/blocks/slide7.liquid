@@ -1,3 +1,4 @@
+{% render 'billing-gate' %}
 {{ 'slider-09.css' | asset_url | stylesheet_tag }}
 <script src="{{ 'slider-09.js' | asset_url }}" defer></script>
 
@@ -16,7 +17,7 @@ assign products_to_show = slider_collection.products_count | default: slider_col
 endif
 %}
 {% if slider_collection != blank and slider_collection.products_count > 0 %}
-<div id="{{ section_id }}" class="slider-09-root" style="--s09-height: {{ block.settings.section_height }}" {{ block.shopify_attributes }}>
+<div id="{{ section_id }}" class="slider-09-root" data-carousel-billing-gate style="--s09-height: {{ block.settings.section_height }}" {{ block.shopify_attributes }}>
 <div class="carousel">
 <div class="list">
 {% for product in slider_collection.products limit: products_to_show %}

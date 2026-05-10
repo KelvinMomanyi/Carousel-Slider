@@ -1,6 +1,13 @@
-import { Page, Layout, Card, TextContainer, Text, Button, TextField, FormLayout } from "@shopify/polaris";
+import { Page, Layout, Card, Text, Button, TextField, FormLayout } from "@shopify/polaris";
 import emailjs from '@emailjs/browser';
 import { useState, useEffect } from "react";
+import { requireBilling } from "../utils/billing.server";
+
+export const loader = async ({ request }) => {
+  await requireBilling(request);
+
+  return null;
+};
 
 export default function SupportPage() {
   const [email, setEmail] = useState('');

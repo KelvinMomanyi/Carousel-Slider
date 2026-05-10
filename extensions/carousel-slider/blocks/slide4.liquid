@@ -1,3 +1,4 @@
+{% render 'billing-gate' %}
 {% liquid
   assign section_id = 'slider-06-' | append: block.id
   if block.settings.selected_collection != blank
@@ -23,6 +24,7 @@
 <div
   id="{{ section_id }}"
   class="slider-06-root gradient"
+  data-carousel-billing-gate
   style="
     --s06-height: {{ block.settings.section_height }};
     {% if use_custom_colors and block.settings.custom_background_color != blank %}

@@ -32,15 +32,20 @@ model Session {
 }
 
 model Shop {
-  id                 String    @id @default(uuid())
-  shopDomain         String    @unique
-  accessToken        String
-  subscriptionStatus String?   @default("NONE") // ACTIVE, CANCELLED, EXPIRED, NONE
-  planName           String?
-  billingInterval    String?   // MONTHLY, ANNUAL
-  trialEndsAt        DateTime?
-  subscriptionId     String?
-  createdAt          DateTime  @default(now())
-  updatedAt          DateTime  @updatedAt
+  id                    String    @id @default(uuid())
+  shop                  String    @unique
+  installDate           DateTime  @default(now())
+  trialEndsAt           DateTime?
+  plan                  String?
+  isDevStore            Boolean   @default(false)
+  hasActiveSubscription Boolean   @default(false)
+  gracePeriodEndsAt     DateTime?
+  lastCheckedAt         DateTime  @default(now())
+  accessToken           String?
+  shopifyPlanName       String?
+  subscriptionId        String?
+  uninstalledAt         DateTime?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
 }
 

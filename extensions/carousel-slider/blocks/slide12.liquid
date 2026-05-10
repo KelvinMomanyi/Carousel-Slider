@@ -1,3 +1,4 @@
+{% render 'billing-gate' %}
 <link href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css" rel="stylesheet"/>
 {% liquid
   if block.settings.selected_collection != blank
@@ -67,6 +68,7 @@
 <div
   class="shv-slider-wrapper gradient"
   id="{{ section_id }}"
+  data-carousel-billing-gate
   style="
     --theme-accent: var(--shv-accent);
     --theme-text: var(--shv-text);

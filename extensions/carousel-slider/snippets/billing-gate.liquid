@@ -1,0 +1,33 @@
+{%- comment -%}
+  Billing Gate — Defense-in-depth check for subscription status.
+  
+  This snippet makes a lightweight fetch to the app proxy endpoint
+  to verify the merchant has an active subscription, trial, or 
+  grace period. If not, all carousel elements on the page are hidden.
+  
+  Primary defense: Shopify's built-in billing enforcement via the
+  Partner Dashboard / managed app pricing.
+  Secondary defense: This JS check + the server-side metafield.
+{%- endcomment -%}
+<script>
+(function() {
+  if (window.__carouselBillingChecked) return;
+  window.__carouselBillingChecked = true;
+  var proxyUrl = '/apps/carousel/billing-status';
+  fetch(proxyUrl)
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      if (d && d.active === false) {
+        var els = document.querySelectorAll('[data-carousel-billing-gate]');
+        for (var i = 0; i < els.length; i++) {
+          els[i].style.display = 'none';
+        }
+      }
+    })
+    .catch(function() {
+      /* Fail open: if proxy is unreachable, don't break the storefront
+         for paying merchants. The primary billing enforcement is handled
+         by Shopify's platform-level subscription management. */
+    });
+})();
+</script>

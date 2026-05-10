@@ -1,5 +1,5 @@
-import { useEffect } from "react";
-import { useFetcher, useLoaderData } from "@remix-run/react";
+import { json } from "@remix-run/node";
+import { useLoaderData } from "@remix-run/react";
 import {
   Page,
   Layout,
@@ -7,43 +7,24 @@ import {
   Card,
   Button,
   BlockStack,
-  Box,
   List,
   Link,
-  InlineStack,
-  Image,
-  Banner
+  Banner,
 } from "@shopify/polaris";
-import { TitleBar, useAppBridge } from "@shopify/app-bridge-react";
-import { authenticate } from "../shopify.server";
-import { requireBilling, getBillingStatus, isInTrial, getTrialDaysRemaining } from "../utils/billing.server";
-import { json } from "@remix-run/node";
+import { requireBilling, getBillingConfig } from "../utils/billing.server";
 
 export const loader = async ({ request }) => {
-  const { billing, session } = await authenticate.admin(request);
-
-  // Check billing status
-  const { hasActivePayment, appSubscriptions } = await requireBilling(billing);
-
-  // Get shop data from database (may be null if table doesn't exist yet)
-  const shop = await getBillingStatus(session.shop);
-
-  // If shop is null (table doesn't exist), treat as trial
-  const inTrial = shop ? isInTrial(shop) : true; // Default to trial mode
-  const trialDaysRemaining = shop ? getTrialDaysRemaining(shop) : 7; // Show full trial
+  const { session, billing } = await requireBilling(request);
 
   return json({
-    hasActivePayment,
-    inTrial,
-    trialDaysRemaining,
     shop: session.shop,
-    subscriptionStatus: shop?.subscriptionStatus || "NONE",
+    billing,
+    billingConfig: getBillingConfig(),
   });
 };
 
-
 export const action = async ({ request }) => {
-  const { admin } = await authenticate.admin(request);
+  const { admin } = await requireBilling(request);
   const color = ["Red", "Orange", "Yellow", "Green"][
     Math.floor(Math.random() * 4)
   ];
@@ -107,164 +88,138 @@ export const action = async ({ request }) => {
   };
 };
 
-export default function Index() {
-  const fetcher = useFetcher();
-  const loaderData = useLoaderData();
-  const { hasActivePayment, inTrial, trialDaysRemaining, subscriptionStatus } = loaderData || {};
-
-  const shopify = useAppBridge();
-  const isLoading =
-    ["loading", "submitting"].includes(fetcher.state) &&
-    fetcher.formMethod === "POST";
-  const productId = fetcher.data?.product?.id.replace(
-    "gid://shopify/Product/",
-    "",
-  );
-
-  useEffect(() => {
-    if (productId) {
-      shopify.toast.show("Product created");
-    }
-  }, [productId, shopify]);
-  const generateProduct = () => fetcher.submit({}, { method: "POST" });
-
-  // Show upgrade prompt if no active payment and not in trial
-  if (!hasActivePayment && !inTrial) {
+function BillingBanner({ billing, billingConfig }) {
+  if (billing.isDevStore) {
     return (
-      <Page>
-        <BlockStack gap="500">
-          <Banner
-            title="Subscription Required"
-            status="warning"
-          >
-            <p>
-              Your free trial has ended. Subscribe to continue using the Carousel Slider.
-            </p>
-            <p>
-              <strong>Plans Available:</strong>
-            </p>
-            <List>
-              <List.Item>PRO Monthly - $6.99/month</List.Item>
-              <List.Item>PRO Annual - $60/year (Save 28%!)</List.Item>
-            </List>
-            <p style={{ marginTop: "1rem" }}>
-              To subscribe, go to: <strong>Shopify Admin → Settings → Apps and sales channels → Carousel Slider → Billing</strong>
-            </p>
-          </Banner>
-
-          <Card>
-            <BlockStack gap="200">
-              <Text as="h2" variant="headingMd">App Features (Subscription Required)</Text>
-              <List>
-                <List.Item>Beautiful product carousel on any page</List.Item>
-                <List.Item>Customizable colors and styling</List.Item>
-                <List.Item>Collection-based or all products display</List.Item>
-                <List.Item>Responsive design for all devices</List.Item>
-                <List.Item>Real-time theme editor preview</List.Item>
-              </List>
-            </BlockStack>
-          </Card>
-        </BlockStack>
-      </Page>
+      <Banner title="Development Store Access" tone="info">
+        <p>Billing is not enforced while this shop is on a development plan.</p>
+      </Banner>
     );
   }
+
+  if (billing.isTrialActive) {
+    return (
+      <Banner
+        title={`Trial ends in ${billing.trialDaysRemaining} day${
+          billing.trialDaysRemaining === 1 ? "" : "s"
+        }`}
+        tone="info"
+      >
+        <p>
+          Your {billingConfig.trialDays}-day trial includes full access to
+          Carousel Slider.
+        </p>
+      </Banner>
+    );
+  }
+
+  if (billing.isGracePeriodActive) {
+    return (
+      <Banner
+        title="Trial expired"
+        tone="warning"
+        action={{ content: "Upgrade", url: "/app/billing" }}
+      >
+        <p>
+          Your trial has ended. Upgrade within{" "}
+          {billing.graceDaysRemaining} day
+          {billing.graceDaysRemaining === 1 ? "" : "s"} to avoid losing access.
+        </p>
+      </Banner>
+    );
+  }
+
+  if (billing.hasActiveSubscription) {
+    return (
+      <Banner
+        title={`${billing.plan || "Pro"} subscription active`}
+        tone="success"
+      >
+        <p>You have full access to Carousel Slider.</p>
+      </Banner>
+    );
+  }
+
+  return null;
+}
+
+export default function Index() {
+  const { billing, billingConfig } = useLoaderData();
 
   return (
     <Page>
       <BlockStack gap="500">
-        {/* Trial Banner */}
-        {inTrial && (
-          <Banner
-            title={`Free Trial Active - ${trialDaysRemaining} day${trialDaysRemaining !== 1 ? 's' : ''} remaining`}
-            status="info"
-          >
-            <p>
-              You're currently on a 7-day free trial. Enjoy full access to all features!
-            </p>
-            <p>
-              After your trial ends, subscribe to continue using the Carousel Slider for just <strong>$6.99/month</strong> or <strong>$60/year</strong>.
-            </p>
-          </Banner>
-        )}
-
-        {/* Active Subscription Banner */}
-        {hasActivePayment && !inTrial && (
-          <Banner
-            title="PRO Subscription Active"
-            status="success"
-          >
-            <p>Thank you for subscribing! You have full access to all features.</p>
-          </Banner>
-        )}
+        <BillingBanner billing={billing} billingConfig={billingConfig} />
 
         <Layout>
-          {/* Main Content */}
           <Layout.Section>
             <Card>
               <BlockStack gap="500">
-                {/* Welcome Text */}
                 <BlockStack gap="200">
                   <Text as="h2" variant="headingMd">
-                    Congrats on installing carousel-slider Shopify app 🎉
+                    Carousel Slider is installed
                   </Text>
                   <Text variant="bodyMd" as="p">
-                    Once the extension is installed, you can use it as follows:
+                    Add the app block from the theme editor to show a product
+                    carousel on product pages, collection pages, or the
+                    homepage.
                   </Text>
                   <List>
                     <List.Item>
-                      <Text as="h3" variant="headingMd">Step 1: Add the Extension to Your Pages</Text>
+                      <Text as="h3" variant="headingMd">
+                        Add the extension
+                      </Text>
                       <Text as="p" variant="bodyMd">
-                        You can add the extension to any page, such as product pages, collection pages, or the homepage, by clicking the "Add Section" button then navigating to the Apps Menu and selecting the app.
+                        In the theme editor, click Add section, open Apps, and
+                        select Carousel Slider.
                       </Text>
                     </List.Item>
                     <List.Item>
-                      <Text as="h3" variant="headingMd">Step 2: Customize Your Content</Text>
+                      <Text as="h3" variant="headingMd">
+                        Customize the content
+                      </Text>
                       <Text as="p" variant="bodyMd">
-                        The extension allows you to customize the content displayed, such as adding a custom collection of featured products,but by default the carousel will display all the products in your store.
-                        You can also customize the color of the product title, among other customization when you click the app from the theme editor section.
+                        Choose collections, colors, and carousel styling from
+                        the app block settings.
                       </Text>
                     </List.Item>
                     <List.Item>
-                      <Text as="h3" variant="headingMd">Step 3: View Changes in Real-Time</Text>
+                      <Text as="h3" variant="headingMd">
+                        Preview before publishing
+                      </Text>
                       <Text as="p" variant="bodyMd">
-                        The Theme Editor updates live, so you can preview the changes before saving them.
+                        The theme editor preview updates as you adjust the
+                        carousel.
                       </Text>
                     </List.Item>
                   </List>
                 </BlockStack>
 
-                {/* Getting Started Section */}
-                <BlockStack gap="200">
-                  <Text as="h3" variant="headingMd">
-                    Get started with the application
-                  </Text>
-                  <Text variant="bodyMd" as="p">
-                    Follow the steps above using the Theme Editor to begin adding and customizing carousels on your store pages.
-                  </Text>
-                </BlockStack>
+                {!billing.hasActiveSubscription && !billing.isDevStore && (
+                  <Button url="/app/billing" variant="primary">
+                    Upgrade to {billingConfig.plan.name}
+                  </Button>
+                )}
               </BlockStack>
             </Card>
           </Layout.Section>
 
-          {/* Help Section */}
           <Layout.Section variant="oneThird">
-            <BlockStack gap="500">
-              <Card>
-                <BlockStack gap="200">
-                  <Text as="h2" variant="headingMd">Need Help?</Text>
-                  <List>
-                    <Link url="/app/support" removeUnderline>
-                      <Button primary>Email Support</Button>
-                    </Link>
-                  </List>
-                </BlockStack>
-              </Card>
-            </BlockStack>
+            <Card>
+              <BlockStack gap="200">
+                <Text as="h2" variant="headingMd">
+                  Need help?
+                </Text>
+                <List>
+                  <Link url="/app/support" removeUnderline>
+                    <Button>Email Support</Button>
+                  </Link>
+                </List>
+              </BlockStack>
+            </Card>
           </Layout.Section>
         </Layout>
       </BlockStack>
     </Page>
-
-
   );
 }
