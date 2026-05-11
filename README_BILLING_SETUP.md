@@ -21,9 +21,9 @@ Vercel Dashboard → Your Project → Settings → Environment Variables
 
 Add this variable:
 
-**Name:** `DATABASE_URL`  
-**Value:** `postgresql://neondb_owner:npg_Oda2go3cXHJW@ep-autumn-feather-a43ph8xi-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require`  
-**Environment:** Production, Preview, Development (select all)
+- **Name:** `DATABASE_URL`
+- **Value:** Your production PostgreSQL connection string
+- **Environment:** Production, Preview, Development (select all)
 
 ### 2. Deploy Your Changes
 
