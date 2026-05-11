@@ -1,7 +1,7 @@
 {% render 'billing-gate' %}
 {%- liquid
-assign cb=shop.metafields["app--carousel-slider"].billing_active.value
-assign ce=shop.metafields["app--carousel-slider"].billing_access_expires_at.value | date: '%s' | plus: 0
+assign cb=app.metafields.billing.active.value
+assign ce=app.metafields.billing.expires_at.value | date: '%s' | plus: 0
 assign cn='now' | date: '%s' | plus: 0
 assign ca=false
 if cb == true or cb == 'true'

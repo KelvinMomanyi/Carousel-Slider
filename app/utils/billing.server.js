@@ -564,10 +564,10 @@ function getBillingMetafieldSnapshot(shop) {
 }
 
 /**
- * Syncs a shop-level metafield that the storefront Liquid blocks can read
- * to gate carousel rendering based on billing status.
+ * Syncs app-data metafields that the storefront Liquid blocks can read
+ * through the theme app extension app object.
  *
- * billing_active is paired with billing_access_expires_at so Liquid can
+ * billing.active is paired with billing.expires_at so Liquid can
  * fail closed as soon as a trial or grace period ends, without waiting for
  * another admin visit.
  */
@@ -579,10 +579,12 @@ export async function syncBillingMetafield(session, shop) {
   const { isActive, expiresAt } = getBillingMetafieldSnapshot(shop);
 
   try {
-    const shopGid = await getShopGid(session);
+    const appInstallationGid = await getAppInstallationGid(session);
 
-    if (!shopGid) {
-      throw new Error(`Could not resolve Shopify shop ID for ${session.shop}`);
+    if (!appInstallationGid) {
+      throw new Error(
+        `Could not resolve app installation ID for ${session.shop}`,
+      );
     }
 
     const response = await fetch(
@@ -605,16 +607,16 @@ export async function syncBillingMetafield(session, shop) {
           variables: {
             metafields: [
               {
-                namespace: "app--carousel-slider",
-                key: "billing_active",
-                ownerId: `gid://shopify/Shop/${shopGid}`,
+                namespace: "billing",
+                key: "active",
+                ownerId: appInstallationGid,
                 type: "boolean",
                 value: String(isActive),
               },
               {
-                namespace: "app--carousel-slider",
-                key: "billing_access_expires_at",
-                ownerId: `gid://shopify/Shop/${shopGid}`,
+                namespace: "billing",
+                key: "expires_at",
+                ownerId: appInstallationGid,
                 type: "date_time",
                 value: expiresAt.toISOString(),
               },
@@ -639,22 +641,32 @@ export async function syncBillingMetafield(session, shop) {
 }
 
 /**
- * Retrieves the numeric shop ID needed for the metafield ownerId.
+ * Retrieves the app installation ID needed for app-data metafields.
  */
-async function getShopGid(session) {
+async function getAppInstallationGid(session) {
   try {
     const response = await fetch(
-      `https://${session.shop}/admin/api/${SHOP_PLAN_API_VERSION}/shop.json`,
+      `https://${session.shop}/admin/api/${SHOP_PLAN_API_VERSION}/graphql.json`,
       {
+        method: "POST",
         headers: {
+          "Content-Type": "application/json",
           "X-Shopify-Access-Token": session.accessToken,
-          Accept: "application/json",
         },
+        body: JSON.stringify({
+          query: `
+            query CurrentAppInstallation {
+              currentAppInstallation {
+                id
+              }
+            }
+          `,
+        }),
       },
     );
 
     const data = await response.json();
-    return data.shop?.id;
+    return data.data?.currentAppInstallation?.id || null;
   } catch {
     return null;
   }

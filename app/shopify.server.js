@@ -15,14 +15,15 @@ import {
 } from "./utils/billing-state.server";
 
 const scopes = Array.from(
-  new Set([
-    ...(process.env.SCOPES || "read_products,write_products")
+  new Set(
+    (process.env.SCOPES || "read_products,write_products")
       .split(",")
       .map((scope) => scope.trim())
-      .filter(Boolean),
-    "read_metafields",
-    "write_metafields",
-  ]),
+      .filter(
+        (scope) =>
+          scope && !["read_metafields", "write_metafields"].includes(scope),
+      ),
+  ),
 );
 
 const shopify = shopifyApp({
