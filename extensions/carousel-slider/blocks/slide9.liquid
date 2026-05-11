@@ -1,4 +1,18 @@
 {% render 'billing-gate' %}
+{%- liquid
+  assign carousel_billing_value = shop.metafields["app--carousel-slider"].billing_active.value
+  assign carousel_billing_expires_at = shop.metafields["app--carousel-slider"].billing_access_expires_at.value
+  assign carousel_billing_now = 'now' | date: '%s' | plus: 0
+  assign carousel_billing_expires = carousel_billing_expires_at | date: '%s' | plus: 0
+  assign carousel_billing_active = false
+
+  if carousel_billing_value == true or carousel_billing_value == 'true'
+    if carousel_billing_expires > carousel_billing_now
+      assign carousel_billing_active = true
+    endif
+  endif
+-%}
+{%- if carousel_billing_active -%}
 {% liquid
 assign section_id = 'slider-11-' | append: block.id
 if block.settings.selected_collection != blank
@@ -54,6 +68,8 @@ endif
 {% else %}
 <div class="slider-liquid-empty" {{ block.shopify_attributes }}>Select a collection with products to render this slider.</div>
 {% endif %}
+{%- endif -%}
+
 {% schema %}
 {"name":"Carousel: Coverflow","settings":[{"type":"collection","id":"selected_collection","label":"Collection"},{"type":"select","id":"products_display_mode","label":"Products to show","options":[{"value":"limited","label":"Set number"},{"value":"all","label":"All products"}],"default":"limited"},{"type":"range","id":"products_limit","label":"Number of products","min":3,"max":10,"step":1,"default":6},{"type":"text","id":"section_height","label":"Section height","default":"700px"},{"type":"header","content":"Text and Button Styling"},{"type":"color","id":"text_color","label":"Text color"},{"type":"text","id":"text_font_size","label":"Text font size","info":"Use a CSS size, for example 18px or 1.2rem."},{"type":"color","id":"button_color","label":"Button color"},{"type":"color","id":"button_text_color","label":"Button text color"},{"type":"text","id":"button_font_size","label":"Button font size","info":"Use a CSS size, for example 16px or 1rem."}],"target":"section"}
 {% endschema %}

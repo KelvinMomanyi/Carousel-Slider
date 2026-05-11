@@ -1,32 +1,38 @@
-import { authenticate } from "../../shopify.server";
-import { syncShopFromShopify } from "../../utils/billing-state.server";
-import { syncBillingMetafield } from "../../utils/billing.server";
 import { json } from "@remix-run/node";
+import { authenticate } from "../shopify.server";
+import prisma from "../db.server";
+import { syncShopFromShopify } from "../utils/billing-state.server";
+import { syncBillingMetafield } from "../utils/billing.server";
 
 /**
- * Handles SHOP_UPDATE webhook — fired when a store's plan changes.
- * This catches the critical dev-store → live-store transition so we
- * can flip isDevStore to false and begin enforcing billing immediately,
- * rather than waiting for the merchant to open the app admin.
+ * Handles SHOP_UPDATE webhooks. This catches the critical dev-store to
+ * live-store transition so billing enforcement starts immediately.
  */
 export const action = async ({ request }) => {
   try {
     const { topic, shop, session } = await authenticate.webhook(request);
 
     if (topic === "SHOP_UPDATE") {
-      console.log(`[Webhook] Shop updated for ${shop} — re-syncing plan status`);
+      console.log(`[Webhook] Shop updated for ${shop} - re-syncing plan status`);
 
-      // Re-fetch the shop's Shopify plan and update isDevStore flag
-      if (session) {
-        const updatedShop = await syncShopFromShopify(session);
+      const storedShop = await prisma.shop.findUnique({ where: { shop } });
+      const syncSession =
+        session ||
+        (storedShop?.accessToken
+          ? { shop, accessToken: storedShop.accessToken }
+          : null);
 
-        // Sync the storefront metafield so Liquid blocks react immediately
-        await syncBillingMetafield(session, updatedShop);
-
-        console.log(
-          `[Webhook] Shop ${shop} plan sync complete — isDevStore: ${updatedShop.isDevStore}`
-        );
+      if (!syncSession) {
+        console.warn(`[Webhook] No access token available to sync ${shop}`);
+        return json({ success: true, synced: false });
       }
+
+      const updatedShop = await syncShopFromShopify(syncSession);
+      await syncBillingMetafield(syncSession, updatedShop);
+
+      console.log(
+        `[Webhook] Shop ${shop} plan sync complete - isDevStore: ${updatedShop.isDevStore}`,
+      );
     }
 
     return json({ success: true });

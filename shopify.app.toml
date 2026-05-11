@@ -12,7 +12,7 @@ dev_store_url = "saastester.myshopify.com"
 
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
-scopes = "read_products,write_products"
+scopes = "read_products,write_products,read_metafields,write_metafields"
 
 [auth]
 redirect_urls = [
@@ -31,6 +31,18 @@ api_version = "2025-04"
   [[webhooks.subscriptions]]
   topics = [ "shop/update" ]
   uri = "/webhooks/shop/update"
+
+  [[webhooks.subscriptions]]
+  topics = [ "app_subscriptions/update" ]
+  uri = "/webhooks/subscription"
+
+  [[webhooks.subscriptions]]
+  topics = [ "app/uninstalled" ]
+  uri = "/webhooks/app/uninstalled"
+
+  [[webhooks.subscriptions]]
+  topics = [ "app/scopes_update" ]
+  uri = "/webhooks/app/scopes_update"
 
 [app_proxy]
 url = "https://carouselslider-sandy.vercel.app/proxy"

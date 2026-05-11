@@ -1,4 +1,18 @@
 {% render 'billing-gate' %}
+{%- liquid
+  assign carousel_billing_value = shop.metafields["app--carousel-slider"].billing_active.value
+  assign carousel_billing_expires_at = shop.metafields["app--carousel-slider"].billing_access_expires_at.value
+  assign carousel_billing_now = 'now' | date: '%s' | plus: 0
+  assign carousel_billing_expires = carousel_billing_expires_at | date: '%s' | plus: 0
+  assign carousel_billing_active = false
+
+  if carousel_billing_value == true or carousel_billing_value == 'true'
+    if carousel_billing_expires > carousel_billing_now
+      assign carousel_billing_active = true
+    endif
+  endif
+-%}
+{%- if carousel_billing_active -%}
 {{ 'slider-10.css' | asset_url | stylesheet_tag }}
 <script src="{{ 'slider-10.js' | asset_url }}" defer></script>
 {% liquid
@@ -285,6 +299,8 @@ style="
 {% else %}
 <div class="slider-liquid-empty" {{ block.shopify_attributes }}>Select a collection with products to render this slider.</div>
 {% endif %}
+{%- endif -%}
+
 {% schema %}
 {"name":"Carousel Vanish","settings":[{"type":"collection","id":"selected_collection","label":"Collection"},{"type":"select","id":"products_display_mode","label":"Products to show","options":[{"value":"limited","label":"Set number"},{"value":"all","label":"All products"}],"default":"limited"},{"type":"range","id":"products_limit","label":"Number of products","min":2,"max":8,"step":1,"default":3},{"type":"header","content":"Style Settings"},{"type":"paragraph","content":"Native theme color scheme pickers are not supported in app blocks. Leave these overrides blank to inherit colors from the parent theme section or Apps wrapper."},{"type":"select","id":"color_scheme_mode","label":"Color scheme","options":[{"value":"inherit","label":"Inherit parent section"},{"value":"custom","label":"Use custom overrides"}],"default":"inherit"},{"type":"color","id":"custom_background_color","label":"Background color override"},{"type":"color_background","id":"custom_background_gradient","label":"Background gradient override"},{"type":"color","id":"custom_text_color","label":"Text color override"},{"type":"color","id":"custom_button_color","label":"Primary button/accent override"},{"type":"color","id":"custom_button_text_color","label":"Primary button text override"},{"type":"color","id":"custom_outline_color","label":"Secondary button/accent override"},{"type":"color","id":"custom_shadow_color","label":"Shadow color override"},{"type":"text","id":"section_height","label":"Section height","default":"700px"},{"type":"header","content":"Text and Button Styling"},{"type":"color","id":"text_color","label":"Text color"},{"type":"text","id":"text_font_size","label":"Text font size","info":"Use a CSS size, for example 18px or 1.2rem."},{"type":"color","id":"button_color","label":"Button color"},{"type":"color","id":"button_text_color","label":"Button text color"},{"type":"text","id":"button_font_size","label":"Button font size","info":"Use a CSS size, for example 16px or 1rem."}],"target":"section"}
 {% endschema %}

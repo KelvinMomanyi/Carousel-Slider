@@ -7,8 +7,8 @@ export const BILLING_PLAN = {
   interval: "EVERY_30_DAYS",
 };
 
-export const BILLING_TRIAL_DAYS = 14;
-export const BILLING_GRACE_DAYS = 2;
+export const BILLING_TRIAL_DAYS = 7;
+export const BILLING_GRACE_DAYS = 0;
 export const SHOP_PLAN_API_VERSION =
   process.env.SHOPIFY_SHOP_PLAN_API_VERSION || "2025-04";
 
@@ -67,18 +67,22 @@ function baseShopData({ session, shopifyPlanName, now }) {
 export async function recordShopInstall(session) {
   const now = new Date();
   const shopifyPlanName = await fetchShopPlanName(session);
+  const isDevStore = isDevelopmentStorePlan(shopifyPlanName);
 
-  return prisma.shop.upsert({
+  const shop = await prisma.shop.upsert({
     where: { shop: session.shop },
     create: {
       id: crypto.randomUUID(),
       shop: session.shop,
       installDate: now,
+      ...(!isDevStore ? createTrialWindow(now) : {}),
       hasActiveSubscription: false,
       ...baseShopData({ session, shopifyPlanName, now }),
     },
     update: baseShopData({ session, shopifyPlanName, now }),
   });
+
+  return ensureLiveTrialStarted(shop, now);
 }
 
 export async function syncShopFromShopify(session) {
@@ -87,26 +91,31 @@ export async function syncShopFromShopify(session) {
   const data = baseShopData({ session, shopifyPlanName, now });
 
   try {
-    return await prisma.shop.upsert({
+    const shop = await prisma.shop.upsert({
       where: { shop: session.shop },
       create: {
         id: crypto.randomUUID(),
         shop: session.shop,
         installDate: now,
+        ...(!data.isDevStore ? createTrialWindow(now) : {}),
         hasActiveSubscription: false,
         ...data,
       },
       update: data,
     });
+
+    return ensureLiveTrialStarted(shop, now);
   } catch (error) {
     if (error.code !== "P2002") {
       throw error;
     }
 
-    return prisma.shop.update({
+    const shop = await prisma.shop.update({
       where: { shop: session.shop },
       data,
     });
+
+    return ensureLiveTrialStarted(shop, now);
   }
 }
 
@@ -121,4 +130,15 @@ export function createTrialWindow(now = new Date()) {
 
 export function createGracePeriodEnd(trialEndsAt) {
   return addDays(trialEndsAt, BILLING_GRACE_DAYS);
+}
+
+export async function ensureLiveTrialStarted(shop, now = new Date()) {
+  if (!shop || shop.isDevStore || shop.trialEndsAt) {
+    return shop;
+  }
+
+  return prisma.shop.update({
+    where: { shop: shop.shop },
+    data: createTrialWindow(now),
+  });
 }

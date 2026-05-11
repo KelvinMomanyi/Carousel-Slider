@@ -5,12 +5,17 @@ import {
   BILLING_GRACE_DAYS,
   BILLING_PLAN,
   BILLING_TRIAL_DAYS,
+  SHOP_PLAN_API_VERSION,
   createGracePeriodEnd,
   createTrialWindow,
   syncShopFromShopify,
 } from "./billing-state.server";
 
 const ACTIVE_SUBSCRIPTION_STATUS = "ACTIVE";
+const LONG_LIVED_BILLING_ACCESS_EXPIRES_AT = new Date(
+  "2099-12-31T23:59:59.000Z",
+);
+const DEV_STORE_BILLING_ACCESS_TTL_MS = 60 * 60 * 1000;
 
 function billingPathForRequest(request) {
   const url = new URL(request.url);
@@ -93,6 +98,60 @@ async function getActiveSubscription(admin) {
   );
 }
 
+async function getActiveSubscriptionWithToken(session) {
+  if (!session?.shop || !session?.accessToken) {
+    return null;
+  }
+
+  const response = await fetch(
+    `https://${session.shop}/admin/api/${SHOP_PLAN_API_VERSION}/graphql.json`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Shopify-Access-Token": session.accessToken,
+      },
+      body: JSON.stringify({
+        query: `#graphql
+          query CurrentAppInstallationSubscriptions {
+            currentAppInstallation {
+              activeSubscriptions {
+                id
+                status
+                name
+              }
+            }
+          }`,
+      }),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      `Failed to verify Shopify subscriptions for ${session.shop}: ${response.status} ${response.statusText}`,
+    );
+  }
+
+  const responseJson = await response.json();
+
+  if (responseJson.errors?.length) {
+    throw new Error(
+      `Failed to verify Shopify subscriptions: ${responseJson.errors
+        .map((error) => error.message)
+        .join(", ")}`,
+    );
+  }
+
+  const subscriptions =
+    responseJson.data?.currentAppInstallation?.activeSubscriptions || [];
+
+  return (
+    subscriptions.find(
+      (subscription) => subscription.status === ACTIVE_SUBSCRIPTION_STATUS,
+    ) || null
+  );
+}
+
 async function markActiveSubscription(shopDomain, subscription) {
   return prisma.shop.update({
     where: { shop: shopDomain },
@@ -115,6 +174,20 @@ async function markNoActiveSubscription(shopDomain) {
       lastCheckedAt: new Date(),
     },
   });
+}
+
+function syncBillingMetafieldLater(session, shop) {
+  syncBillingMetafield(session, shop).catch(() => {});
+}
+
+function billingContext({ admin, session, shop, access, extra }) {
+  syncBillingMetafieldLater(session, shop);
+
+  return {
+    admin,
+    session,
+    billing: billingState(shop, access, extra),
+  };
 }
 
 async function initializeTrial(shop) {
@@ -148,46 +221,47 @@ export async function requireBilling(request, options = {}) {
   let shop = await syncShopFromShopify(session);
   const now = new Date();
 
-  // Sync the billing metafield on every admin visit so the storefront
-  // Liquid blocks always reflect the latest billing state
-  syncBillingMetafield(session, shop).catch(() => {});
-
   if (shop.isDevStore) {
-    return {
+    return billingContext({
       admin,
       session,
-      billing: billingState(shop, "dev"),
-    };
+      shop,
+      access: "dev",
+    });
   }
 
   if (!shop.trialEndsAt) {
     shop = await initializeTrial(shop);
 
-    return {
+    return billingContext({
       admin,
       session,
-      billing: billingState(shop, "trial"),
-    };
+      shop,
+      access: "trial",
+    });
   }
 
   if (now < shop.trialEndsAt) {
-    return {
+    return billingContext({
       admin,
       session,
-      billing: billingState(shop, "trial"),
-    };
+      shop,
+      access: "trial",
+    });
   }
 
   shop = await ensureGracePeriod(shop);
 
   if (shop.gracePeriodEndsAt && now < shop.gracePeriodEndsAt) {
-    return {
+    return billingContext({
       admin,
       session,
-      billing: billingState(shop, "grace", {
+      shop,
+      access: "grace",
+      extra: {
         trialExpired: true,
-      }),
-    };
+      },
+    });
   }
 
   const activeSubscription = await getActiveSubscription(admin);
@@ -195,16 +269,19 @@ export async function requireBilling(request, options = {}) {
   if (activeSubscription) {
     shop = await markActiveSubscription(session.shop, activeSubscription);
 
-    return {
+    return billingContext({
       admin,
       session,
-      billing: billingState(shop, "subscribed", {
+      shop,
+      access: "subscribed",
+      extra: {
         activeSubscription,
-      }),
-    };
+      },
+    });
   }
 
   shop = await markNoActiveSubscription(session.shop);
+  await syncBillingMetafield(session, shop).catch(() => {});
 
   if (allowBillingPage) {
     return {
@@ -220,10 +297,19 @@ export async function requireBilling(request, options = {}) {
 export async function createBillingApproval(request, authenticatedContext) {
   const { admin, session } =
     authenticatedContext || (await authenticate.admin(request));
+  const billing = authenticatedContext?.billing;
+
+  if (billing?.isDevStore) {
+    return redirect("/app");
+  }
+
   const requestUrl = new URL(request.url);
   const baseUrl = process.env.SHOPIFY_APP_URL || requestUrl.origin;
   const returnUrl = new URL("/app", baseUrl);
   const host = requestUrl.searchParams.get("host");
+  const remainingTrialDays = billing?.isTrialActive
+    ? Math.max(0, billing.trialDaysRemaining || 0)
+    : 0;
 
   returnUrl.searchParams.set("shop", session.shop);
   if (host) {
@@ -263,7 +349,7 @@ export async function createBillingApproval(request, authenticatedContext) {
         name: BILLING_PLAN.name,
         returnUrl: returnUrl.toString(),
         test: process.env.SHOPIFY_BILLING_TEST === "true",
-        trialDays: 0,
+        trialDays: remainingTrialDays,
         lineItems: [
           {
             plan: {
@@ -317,6 +403,23 @@ export async function getBillingStatus(shopDomain) {
   });
 }
 
+export async function refreshSubscriptionStatusFromShopify(shop) {
+  if (!shop?.shop || !shop?.accessToken) {
+    return shop;
+  }
+
+  const activeSubscription = await getActiveSubscriptionWithToken({
+    shop: shop.shop,
+    accessToken: shop.accessToken,
+  });
+
+  if (activeSubscription) {
+    return markActiveSubscription(shop.shop, activeSubscription);
+  }
+
+  return markNoActiveSubscription(shop.shop);
+}
+
 export async function updateSubscriptionStatus(shopDomain, subscription) {
   const status = subscription?.status || "NONE";
   const hasActiveSubscription = status === ACTIVE_SUBSCRIPTION_STATUS;
@@ -362,6 +465,9 @@ export async function markAppUninstalled(shopDomain) {
     },
     update: {
       hasActiveSubscription: false,
+      isDevStore: false,
+      plan: null,
+      subscriptionId: null,
       uninstalledAt: now,
       lastCheckedAt: now,
     },
@@ -415,28 +521,72 @@ export function hasPremiumFeatureAccess(billing) {
   );
 }
 
+function getBillingMetafieldSnapshot(shop) {
+  const now = new Date();
+  const inactive = {
+    isActive: false,
+    expiresAt: now,
+  };
+
+  if (!shop || shop.uninstalledAt) {
+    return inactive;
+  }
+
+  if (shop.isDevStore) {
+    return {
+      isActive: true,
+      expiresAt: new Date(now.getTime() + DEV_STORE_BILLING_ACCESS_TTL_MS),
+    };
+  }
+
+  if (shop.hasActiveSubscription) {
+    return {
+      isActive: true,
+      expiresAt: LONG_LIVED_BILLING_ACCESS_EXPIRES_AT,
+    };
+  }
+
+  if (shop.trialEndsAt && now < shop.trialEndsAt) {
+    return {
+      isActive: true,
+      expiresAt: shop.trialEndsAt,
+    };
+  }
+
+  if (shop.gracePeriodEndsAt && now < shop.gracePeriodEndsAt) {
+    return {
+      isActive: true,
+      expiresAt: shop.gracePeriodEndsAt,
+    };
+  }
+
+  return inactive;
+}
+
 /**
  * Syncs a shop-level metafield that the storefront Liquid blocks can read
  * to gate carousel rendering based on billing status.
  *
- * The metafield is set to "true" if the shop has active billing (subscription,
- * trial, grace period, or dev store) and "false" otherwise.
+ * billing_active is paired with billing_access_expires_at so Liquid can
+ * fail closed as soon as a trial or grace period ends, without waiting for
+ * another admin visit.
  */
 export async function syncBillingMetafield(session, shop) {
   if (!session?.accessToken || !session?.shop) {
     return;
   }
 
-  const isActive = Boolean(
-    shop?.isDevStore ||
-      shop?.hasActiveSubscription ||
-      (shop?.trialEndsAt && new Date() < shop.trialEndsAt) ||
-      (shop?.gracePeriodEndsAt && new Date() < shop.gracePeriodEndsAt),
-  );
+  const { isActive, expiresAt } = getBillingMetafieldSnapshot(shop);
 
   try {
+    const shopGid = await getShopGid(session);
+
+    if (!shopGid) {
+      throw new Error(`Could not resolve Shopify shop ID for ${session.shop}`);
+    }
+
     const response = await fetch(
-      `https://${session.shop}/admin/api/2025-04/graphql.json`,
+      `https://${session.shop}/admin/api/${SHOP_PLAN_API_VERSION}/graphql.json`,
       {
         method: "POST",
         headers: {
@@ -457,9 +607,16 @@ export async function syncBillingMetafield(session, shop) {
               {
                 namespace: "app--carousel-slider",
                 key: "billing_active",
-                ownerId: `gid://shopify/Shop/${await getShopGid(session)}`,
+                ownerId: `gid://shopify/Shop/${shopGid}`,
                 type: "boolean",
                 value: String(isActive),
+              },
+              {
+                namespace: "app--carousel-slider",
+                key: "billing_access_expires_at",
+                ownerId: `gid://shopify/Shop/${shopGid}`,
+                type: "date_time",
+                value: expiresAt.toISOString(),
               },
             ],
           },
@@ -487,7 +644,7 @@ export async function syncBillingMetafield(session, shop) {
 async function getShopGid(session) {
   try {
     const response = await fetch(
-      `https://${session.shop}/admin/api/2025-04/shop.json`,
+      `https://${session.shop}/admin/api/${SHOP_PLAN_API_VERSION}/shop.json`,
       {
         headers: {
           "X-Shopify-Access-Token": session.accessToken,

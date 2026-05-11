@@ -8,14 +8,28 @@ import {
 } from "@shopify/shopify-app-remix/server";
 import { PrismaSessionStorage } from "@shopify/shopify-app-session-storage-prisma";
 import prisma from "./db.server";
-import { BILLING_PLAN, recordShopInstall } from "./utils/billing-state.server";
+import {
+  BILLING_PLAN,
+  BILLING_TRIAL_DAYS,
+  recordShopInstall,
+} from "./utils/billing-state.server";
 
+const scopes = Array.from(
+  new Set([
+    ...(process.env.SCOPES || "read_products,write_products")
+      .split(",")
+      .map((scope) => scope.trim())
+      .filter(Boolean),
+    "read_metafields",
+    "write_metafields",
+  ]),
+);
 
 const shopify = shopifyApp({
   apiKey: process.env.SHOPIFY_API_KEY,
   apiSecretKey: process.env.SHOPIFY_API_SECRET || "",
   apiVersion: ApiVersion.April25,
-  scopes: process.env.SCOPES?.split(","),
+  scopes,
   appUrl: process.env.SHOPIFY_APP_URL || "",
   authPathPrefix: "/auth",
   sessionStorage: new PrismaSessionStorage(prisma),
@@ -25,7 +39,7 @@ const shopify = shopifyApp({
       amount: BILLING_PLAN.amount,
       currencyCode: BILLING_PLAN.currencyCode,
       interval: BillingInterval.Every30Days,
-      trialDays: 0,
+      trialDays: BILLING_TRIAL_DAYS,
     },
   },
   hooks: {

@@ -1,6 +1,37 @@
 import { json } from "@remix-run/node";
 import { authenticate } from "../shopify.server";
 import prisma from "../db.server";
+import {
+  refreshSubscriptionStatusFromShopify,
+  syncBillingMetafield,
+} from "../utils/billing.server";
+import { syncShopFromShopify } from "../utils/billing-state.server";
+
+const SUBSCRIPTION_RECHECK_INTERVAL_MS = 6 * 60 * 60 * 1000;
+
+function isCurrentAccessActive(shop) {
+  const now = new Date();
+
+  return Boolean(
+    shop &&
+      !shop.uninstalledAt &&
+      (shop.isDevStore ||
+        shop.hasActiveSubscription ||
+        (shop.trialEndsAt && now < shop.trialEndsAt) ||
+        (shop.gracePeriodEndsAt && now < shop.gracePeriodEndsAt)),
+  );
+}
+
+function shouldRecheckSubscription(shop) {
+  if (!shop?.hasActiveSubscription || !shop.lastCheckedAt) {
+    return false;
+  }
+
+  return (
+    Date.now() - shop.lastCheckedAt.getTime() >
+    SUBSCRIPTION_RECHECK_INTERVAL_MS
+  );
+}
 
 /**
  * App Proxy endpoint: /apps/carousel/billing-status
@@ -19,41 +50,46 @@ export const loader = async ({ request }) => {
       return json({ active: false }, { headers: corsHeaders() });
     }
 
-    const shop = await prisma.shop.findUnique({
+    let shop = await prisma.shop.findUnique({
       where: { shop: session.shop },
     });
 
-    if (!shop) {
+    if (!shop?.accessToken || shop.uninstalledAt) {
       return json({ active: false }, { headers: corsHeaders() });
     }
 
-    // Dev stores always have access (billing not enforced by Shopify)
+    const storedSession = {
+      shop: session.shop,
+      accessToken: shop.accessToken,
+    };
+
+    // If a development store has gone live, this flips isDevStore off and
+    // starts the 7-day live-store trial before deciding storefront access.
     if (shop.isDevStore) {
+      shop = await syncShopFromShopify(storedSession);
+    }
+
+    if (shouldRecheckSubscription(shop)) {
+      shop = await refreshSubscriptionStatusFromShopify(shop);
+    }
+
+    if (isCurrentAccessActive(shop)) {
+      syncBillingMetafield(storedSession, shop).catch(() => {});
       return json({ active: true }, { headers: corsHeaders() });
     }
 
-    // Active subscription = full access
-    if (shop.hasActiveSubscription) {
+    shop = await refreshSubscriptionStatusFromShopify(shop);
+
+    if (isCurrentAccessActive(shop)) {
+      syncBillingMetafield(storedSession, shop).catch(() => {});
       return json({ active: true }, { headers: corsHeaders() });
     }
 
-    // In-trial = access
-    if (shop.trialEndsAt && new Date() < shop.trialEndsAt) {
-      return json({ active: true }, { headers: corsHeaders() });
-    }
-
-    // In grace period = access
-    if (shop.gracePeriodEndsAt && new Date() < shop.gracePeriodEndsAt) {
-      return json({ active: true }, { headers: corsHeaders() });
-    }
-
-    // No active billing, trial, or grace period
+    syncBillingMetafield(storedSession, shop).catch(() => {});
     return json({ active: false }, { headers: corsHeaders() });
   } catch (error) {
     console.error("[Proxy] Billing status check error:", error);
-    // Fail open — don't break the storefront for paying merchants
-    // if there's an unexpected auth error
-    return json({ active: true }, { headers: corsHeaders() });
+    return json({ active: false }, { headers: corsHeaders() });
   }
 };
 
