@@ -1,18 +1,16 @@
 {% render 'billing-gate' %}
 {%- liquid
-  assign carousel_billing_value = shop.metafields["app--carousel-slider"].billing_active.value
-  assign carousel_billing_expires_at = shop.metafields["app--carousel-slider"].billing_access_expires_at.value
-  assign carousel_billing_now = 'now' | date: '%s' | plus: 0
-  assign carousel_billing_expires = carousel_billing_expires_at | date: '%s' | plus: 0
-  assign carousel_billing_active = false
-
-  if carousel_billing_value == true or carousel_billing_value == 'true'
-    if carousel_billing_expires > carousel_billing_now
-      assign carousel_billing_active = true
-    endif
-  endif
+assign cb=shop.metafields["app--carousel-slider"].billing_active.value
+assign ce=shop.metafields["app--carousel-slider"].billing_access_expires_at.value | date: '%s' | plus: 0
+assign cn='now' | date: '%s' | plus: 0
+assign ca=false
+if cb == true or cb == 'true'
+if ce > cn
+assign ca=true
+endif
+endif
 -%}
-{%- if carousel_billing_active -%}
+{%- if ca -%}
 {% liquid
 assign section_id = 'slider-13-' | append: block.id
 if block.settings.selected_collection != blank

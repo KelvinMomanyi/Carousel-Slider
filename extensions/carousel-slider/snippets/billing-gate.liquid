@@ -1,31 +1,8 @@
-{%- comment -%}
-  Billing Gate - defense-in-depth check for subscription status.
-
-  Primary defense: server-side Liquid checks the app billing metafield.
-  Secondary defense: this JS check refreshes status through the app proxy.
-{%- endcomment -%}
 <script>
-(function() {
-  if (window.__carouselBillingChecked) return;
-  window.__carouselBillingChecked = true;
-  var proxyUrl = '/apps/carousel/billing-status';
-
-  function hideCarouselBlocks() {
-    var els = document.querySelectorAll('[data-carousel-billing-gate]');
-    for (var i = 0; i < els.length; i++) {
-      els[i].style.display = 'none';
-    }
-  }
-
-  fetch(proxyUrl)
-    .then(function(r) { return r.json(); })
-    .then(function(d) {
-      if (d && d.active === false) {
-        hideCarouselBlocks();
-      }
-    })
-    .catch(function() {
-      hideCarouselBlocks();
-    });
+(function(){
+if(window.__carouselBillingChecked)return;
+window.__carouselBillingChecked=true;
+function h(){var e=document.querySelectorAll('[data-carousel-billing-gate]');for(var i=0;i<e.length;i++)e[i].style.display='none'}
+fetch('/apps/carousel/billing-status').then(function(r){return r.json()}).then(function(d){if(d&&d.active===false)h()}).catch(h);
 })();
 </script>
