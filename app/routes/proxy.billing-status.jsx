@@ -3,9 +3,13 @@ import { authenticate } from "../shopify.server";
 import prisma from "../db.server";
 import {
   refreshSubscriptionStatusFromShopify,
+  clearStoredShopAuth,
   syncBillingMetafield,
 } from "../utils/billing.server";
-import { syncShopFromShopify } from "../utils/billing-state.server";
+import {
+  isShopifyAuthError,
+  syncShopFromShopify,
+} from "../utils/billing-state.server";
 
 const SUBSCRIPTION_RECHECK_INTERVAL_MS = 6 * 60 * 60 * 1000;
 
@@ -88,6 +92,10 @@ export const loader = async ({ request }) => {
     syncBillingMetafield(storedSession, shop).catch(() => {});
     return json({ active: false }, { headers: corsHeaders() });
   } catch (error) {
+    if (isShopifyAuthError(error)) {
+      await clearStoredShopAuth(error.shop);
+    }
+
     console.error("[Proxy] Billing status check error:", error);
     return json({ active: false }, { headers: corsHeaders() });
   }

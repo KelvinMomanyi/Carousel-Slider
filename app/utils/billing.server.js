@@ -8,6 +8,7 @@ import {
   SHOP_PLAN_API_VERSION,
   createGracePeriodEnd,
   createTrialWindow,
+  isShopifyAuthError,
   syncShopFromShopify,
 } from "./billing-state.server";
 
@@ -29,6 +30,34 @@ function billingPathForRequest(request) {
   }
 
   return `${billingUrl.pathname}${billingUrl.search}`;
+}
+
+function authLoginPathForRequest(request, shop) {
+  const url = new URL(request.url);
+  const loginUrl = new URL("/auth/login", url.origin);
+
+  if (shop) {
+    loginUrl.searchParams.set("shop", shop);
+  }
+
+  const host = url.searchParams.get("host");
+  if (host) {
+    loginUrl.searchParams.set("host", host);
+  }
+
+  return `${loginUrl.pathname}${loginUrl.search}`;
+}
+
+export async function clearStoredShopAuth(shop) {
+  if (!shop) {
+    return;
+  }
+
+  await prisma.session.deleteMany({ where: { shop } });
+  await prisma.shop.updateMany({
+    where: { shop },
+    data: { accessToken: null },
+  });
 }
 
 function billingState(shop, access, extra = {}) {
@@ -218,7 +247,19 @@ export async function requireBilling(request, options = {}) {
   const allowBillingPage =
     options.allowBillingPage && url.pathname === "/app/billing";
 
-  let shop = await syncShopFromShopify(session);
+  let shop;
+
+  try {
+    shop = await syncShopFromShopify(session);
+  } catch (error) {
+    if (isShopifyAuthError(error)) {
+      await clearStoredShopAuth(session.shop);
+      throw redirect(authLoginPathForRequest(request, session.shop));
+    }
+
+    throw error;
+  }
+
   const now = new Date();
 
   if (shop.isDevStore) {
@@ -466,6 +507,7 @@ export async function markAppUninstalled(shopDomain) {
     update: {
       hasActiveSubscription: false,
       isDevStore: false,
+      accessToken: null,
       plan: null,
       subscriptionId: null,
       uninstalledAt: now,

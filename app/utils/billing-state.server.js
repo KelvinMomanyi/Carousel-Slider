@@ -14,6 +14,19 @@ export const SHOP_PLAN_API_VERSION =
 
 const DEV_STORE_PLAN_NAMES = new Set(["affiliate", "development"]);
 
+export class ShopifyAuthError extends Error {
+  constructor(message, { shop, status } = {}) {
+    super(message);
+    this.name = "ShopifyAuthError";
+    this.shop = shop;
+    this.status = status;
+  }
+}
+
+export function isShopifyAuthError(error) {
+  return error?.name === "ShopifyAuthError";
+}
+
 export function addDays(date, days) {
   const nextDate = new Date(date);
   nextDate.setDate(nextDate.getDate() + days);
@@ -40,6 +53,13 @@ export async function fetchShopInfo(session) {
   );
 
   if (!response.ok) {
+    if (response.status === 401) {
+      throw new ShopifyAuthError(
+        `Shopify rejected the stored access token for ${session.shop}`,
+        { shop: session.shop, status: response.status },
+      );
+    }
+
     throw new Error(
       `Failed to fetch Shopify shop info for ${session.shop}: ${response.status} ${response.statusText}`,
     );

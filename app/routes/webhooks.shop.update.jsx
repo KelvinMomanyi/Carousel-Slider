@@ -1,8 +1,14 @@
 import { json } from "@remix-run/node";
 import { authenticate } from "../shopify.server";
 import prisma from "../db.server";
-import { syncShopFromShopify } from "../utils/billing-state.server";
-import { syncBillingMetafield } from "../utils/billing.server";
+import {
+  isShopifyAuthError,
+  syncShopFromShopify,
+} from "../utils/billing-state.server";
+import {
+  clearStoredShopAuth,
+  syncBillingMetafield,
+} from "../utils/billing.server";
 
 /**
  * Handles SHOP_UPDATE webhooks. This catches the critical dev-store to
@@ -37,6 +43,14 @@ export const action = async ({ request }) => {
 
     return json({ success: true });
   } catch (error) {
+    if (isShopifyAuthError(error)) {
+      await clearStoredShopAuth(error.shop);
+      console.warn(
+        `[Webhook] Stored access token rejected for ${error.shop}; reauth required`,
+      );
+      return json({ success: true, synced: false, reauthRequired: true });
+    }
+
     console.error("[Webhook] Shop update error:", error);
     return json({ error: error.message }, { status: 500 });
   }
