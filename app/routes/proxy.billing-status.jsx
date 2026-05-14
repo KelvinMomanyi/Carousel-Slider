@@ -9,21 +9,26 @@ import {
 import {
   isShopifyAuthError,
   syncShopFromShopify,
+  getShopPlanKey,
+  getPlanLimits,
 } from "../utils/billing-state.server";
 
 const SUBSCRIPTION_RECHECK_INTERVAL_MS = 6 * 60 * 60 * 1000;
 
-function isCurrentAccessActive(shop) {
+function getAccessLevel(shop) {
   const now = new Date();
 
-  return Boolean(
-    shop &&
-      !shop.uninstalledAt &&
-      (shop.isDevStore ||
-        shop.hasActiveSubscription ||
-        (shop.trialEndsAt && now < shop.trialEndsAt) ||
-        (shop.gracePeriodEndsAt && now < shop.gracePeriodEndsAt)),
-  );
+  if (!shop || shop.uninstalledAt) {
+    return "none";
+  }
+
+  if (shop.isDevStore) return "dev";
+  if (shop.hasActiveSubscription) return "subscribed";
+  if (shop.trialEndsAt && now < shop.trialEndsAt) return "trial";
+  if (shop.gracePeriodEndsAt && now < shop.gracePeriodEndsAt) return "grace";
+
+  // Free tier — always accessible
+  return "free";
 }
 
 function shouldRecheckSubscription(shop) {
@@ -41,9 +46,10 @@ function shouldRecheckSubscription(shop) {
  * App Proxy endpoint: /apps/carousel/billing-status
  *
  * Called from the storefront by the billing-gate JS snippet.
- * Returns { active: true/false } so the carousel can decide
- * whether to render.
+ * Returns:
+ *   { active: true/false, plan: "free"|"pro", limits: {...} }
  *
+ * Free-tier blocks are always active. Premium blocks check the plan.
  * The request is authenticated via Shopify's app proxy HMAC signature.
  */
 export const loader = async ({ request }) => {
@@ -51,7 +57,10 @@ export const loader = async ({ request }) => {
     const { session } = await authenticate.public.appProxy(request);
 
     if (!session?.shop) {
-      return json({ active: false }, { headers: corsHeaders() });
+      return json(
+        { active: false, plan: "free", limits: getPlanLimits("free") },
+        { headers: corsHeaders() },
+      );
     }
 
     let shop = await prisma.shop.findUnique({
@@ -59,7 +68,10 @@ export const loader = async ({ request }) => {
     });
 
     if (!shop?.accessToken || shop.uninstalledAt) {
-      return json({ active: false }, { headers: corsHeaders() });
+      return json(
+        { active: false, plan: "free", limits: getPlanLimits("free") },
+        { headers: corsHeaders() },
+      );
     }
 
     const storedSession = {
@@ -77,27 +89,54 @@ export const loader = async ({ request }) => {
       shop = await refreshSubscriptionStatusFromShopify(shop);
     }
 
-    if (isCurrentAccessActive(shop)) {
+    const accessLevel = getAccessLevel(shop);
+    const planKey = getShopPlanKey(shop);
+    const limits = getPlanLimits(planKey);
+
+    // For any valid access level, the app is active
+    if (accessLevel !== "none") {
+      // Determine effective plan tier for storefront rendering
+      const effectivePlan =
+        accessLevel === "free" ? "free" : "pro";
+
       syncBillingMetafield(storedSession, shop).catch(() => {});
-      return json({ active: true }, { headers: corsHeaders() });
+      return json(
+        { active: true, plan: effectivePlan, limits },
+        { headers: corsHeaders() },
+      );
     }
 
+    // Double-check with Shopify if we think it's inactive
     shop = await refreshSubscriptionStatusFromShopify(shop);
+    const recheckAccess = getAccessLevel(shop);
+    const recheckPlan = getShopPlanKey(shop);
 
-    if (isCurrentAccessActive(shop)) {
+    if (recheckAccess !== "none") {
+      const effectivePlan =
+        recheckAccess === "free" ? "free" : "pro";
+
       syncBillingMetafield(storedSession, shop).catch(() => {});
-      return json({ active: true }, { headers: corsHeaders() });
+      return json(
+        { active: true, plan: effectivePlan, limits: getPlanLimits(recheckPlan) },
+        { headers: corsHeaders() },
+      );
     }
 
     syncBillingMetafield(storedSession, shop).catch(() => {});
-    return json({ active: false }, { headers: corsHeaders() });
+    return json(
+      { active: false, plan: "free", limits: getPlanLimits("free") },
+      { headers: corsHeaders() },
+    );
   } catch (error) {
     if (isShopifyAuthError(error)) {
       await clearStoredShopAuth(error.shop);
     }
 
     console.error("[Proxy] Billing status check error:", error);
-    return json({ active: false }, { headers: corsHeaders() });
+    return json(
+      { active: false, plan: "free", limits: getPlanLimits("free") },
+      { headers: corsHeaders() },
+    );
   }
 };
 

@@ -4,10 +4,13 @@ import { authenticate } from "../shopify.server";
 import {
   BILLING_GRACE_DAYS,
   BILLING_PLAN,
+  BILLING_PLANS,
   BILLING_TRIAL_DAYS,
   SHOP_PLAN_API_VERSION,
   createGracePeriodEnd,
   createTrialWindow,
+  getShopPlanKey,
+  getPlanLimits,
   isShopifyAuthError,
   syncShopFromShopify,
 } from "./billing-state.server";
@@ -20,7 +23,7 @@ const DEV_STORE_BILLING_ACCESS_TTL_MS = 60 * 60 * 1000;
 
 function billingPathForRequest(request) {
   const url = new URL(request.url);
-  const billingUrl = new URL("/app/billing", url.origin);
+  const billingUrl = new URL("/app/pricing", url.origin);
 
   for (const param of ["shop", "host", "embedded"]) {
     const value = url.searchParams.get(param);
@@ -77,6 +80,9 @@ function billingState(shop, access, extra = {}) {
       )
     : 0;
 
+  const planKey = getShopPlanKey(shop);
+  const limits = getPlanLimits(planKey);
+
   return {
     access,
     shop: shop?.shop || null,
@@ -89,6 +95,8 @@ function billingState(shop, access, extra = {}) {
     trialEndsAt: shop?.trialEndsAt || null,
     gracePeriodEndsAt: shop?.gracePeriodEndsAt || null,
     plan: shop?.plan || null,
+    currentPlan: planKey,
+    limits,
     ...extra,
   };
 }
@@ -188,6 +196,7 @@ async function markActiveSubscription(shopDomain, subscription) {
       hasActiveSubscription: true,
       plan: subscription.name,
       subscriptionId: subscription.id,
+      currentPlan: "pro",
       lastCheckedAt: new Date(),
     },
   });
@@ -200,6 +209,7 @@ async function markNoActiveSubscription(shopDomain) {
       hasActiveSubscription: false,
       plan: null,
       subscriptionId: null,
+      currentPlan: "free",
       lastCheckedAt: new Date(),
     },
   });
@@ -241,11 +251,21 @@ async function ensureGracePeriod(shop) {
   });
 }
 
+/**
+ * Requires billing — but never fully blocks access.
+ *
+ * Freemium model:
+ * - Dev stores → full access (access: "dev")
+ * - Active trial → full access (access: "trial")
+ * - Grace period → full access with warning (access: "grace")
+ * - Active subscription → full Pro access (access: "subscribed")
+ * - No subscription after trial/grace → FREE TIER (access: "free")
+ *
+ * The key change: instead of redirecting to billing on expiry,
+ * we degrade to the free plan so the app always works.
+ */
 export async function requireBilling(request, options = {}) {
   const { admin, session } = await authenticate.admin(request);
-  const url = new URL(request.url);
-  const allowBillingPage =
-    options.allowBillingPage && url.pathname === "/app/billing";
 
   let shop;
 
@@ -262,6 +282,7 @@ export async function requireBilling(request, options = {}) {
 
   const now = new Date();
 
+  // Dev stores always get full access
   if (shop.isDevStore) {
     return billingContext({
       admin,
@@ -271,6 +292,7 @@ export async function requireBilling(request, options = {}) {
     });
   }
 
+  // First visit — start trial
   if (!shop.trialEndsAt) {
     shop = await initializeTrial(shop);
 
@@ -282,6 +304,7 @@ export async function requireBilling(request, options = {}) {
     });
   }
 
+  // Trial still active
   if (now < shop.trialEndsAt) {
     return billingContext({
       admin,
@@ -291,6 +314,7 @@ export async function requireBilling(request, options = {}) {
     });
   }
 
+  // Trial expired — check grace period
   shop = await ensureGracePeriod(shop);
 
   if (shop.gracePeriodEndsAt && now < shop.gracePeriodEndsAt) {
@@ -305,6 +329,7 @@ export async function requireBilling(request, options = {}) {
     });
   }
 
+  // Check for active Shopify subscription
   const activeSubscription = await getActiveSubscription(admin);
 
   if (activeSubscription) {
@@ -321,18 +346,16 @@ export async function requireBilling(request, options = {}) {
     });
   }
 
+  // No active subscription — DEGRADE TO FREE instead of blocking
   shop = await markNoActiveSubscription(session.shop);
   await syncBillingMetafield(session, shop).catch(() => {});
 
-  if (allowBillingPage) {
-    return {
-      admin,
-      session,
-      billing: billingState(shop, "blocked"),
-    };
-  }
-
-  throw redirect(billingPathForRequest(request));
+  return billingContext({
+    admin,
+    session,
+    shop,
+    access: "free",
+  });
 }
 
 export async function createBillingApproval(request, authenticatedContext) {
@@ -431,6 +454,7 @@ export async function createBillingApproval(request, authenticatedContext) {
     where: { shop: session.shop },
     data: {
       plan: BILLING_PLAN.name,
+      currentPlan: "pro",
       lastCheckedAt: new Date(),
     },
   });
@@ -478,6 +502,7 @@ export async function updateSubscriptionStatus(shopDomain, subscription) {
       hasActiveSubscription,
       plan: hasActiveSubscription ? subscriptionName : null,
       subscriptionId,
+      currentPlan: hasActiveSubscription ? "pro" : "free",
       isDevStore: false,
       lastCheckedAt: now,
     },
@@ -485,6 +510,7 @@ export async function updateSubscriptionStatus(shopDomain, subscription) {
       hasActiveSubscription,
       plan: hasActiveSubscription ? subscriptionName : null,
       subscriptionId,
+      currentPlan: hasActiveSubscription ? "pro" : "free",
       lastCheckedAt: now,
     },
   });
@@ -501,6 +527,7 @@ export async function markAppUninstalled(shopDomain) {
       installDate: now,
       hasActiveSubscription: false,
       isDevStore: false,
+      currentPlan: "free",
       uninstalledAt: now,
       lastCheckedAt: now,
     },
@@ -510,6 +537,7 @@ export async function markAppUninstalled(shopDomain) {
       accessToken: null,
       plan: null,
       subscriptionId: null,
+      currentPlan: "free",
       uninstalledAt: now,
       lastCheckedAt: now,
     },
@@ -549,11 +577,16 @@ export function getGraceDaysRemaining(shop) {
 export function getBillingConfig() {
   return {
     plan: BILLING_PLAN,
+    plans: BILLING_PLANS,
     trialDays: BILLING_TRIAL_DAYS,
     graceDays: BILLING_GRACE_DAYS,
   };
 }
 
+/**
+ * Returns true if the merchant has access to premium (Pro) features.
+ * Free-tier features are always accessible.
+ */
 export function hasPremiumFeatureAccess(billing) {
   return Boolean(
     billing?.isDevStore ||
@@ -563,10 +596,20 @@ export function hasPremiumFeatureAccess(billing) {
   );
 }
 
+/**
+ * Returns true if the merchant has at least free-tier access (always true
+ * for installed apps in the freemium model).
+ */
+export function hasAnyAccess(billing) {
+  return Boolean(billing?.access && billing.access !== "blocked");
+}
+
 function getBillingMetafieldSnapshot(shop) {
   const now = new Date();
+  const planKey = getShopPlanKey(shop);
   const inactive = {
     isActive: false,
+    planTier: "free",
     expiresAt: now,
   };
 
@@ -574,35 +617,48 @@ function getBillingMetafieldSnapshot(shop) {
     return inactive;
   }
 
+  // Dev stores
   if (shop.isDevStore) {
     return {
       isActive: true,
+      planTier: "pro",
       expiresAt: new Date(now.getTime() + DEV_STORE_BILLING_ACCESS_TTL_MS),
     };
   }
 
+  // Active subscription
   if (shop.hasActiveSubscription) {
     return {
       isActive: true,
+      planTier: "pro",
       expiresAt: LONG_LIVED_BILLING_ACCESS_EXPIRES_AT,
     };
   }
 
+  // Trial active
   if (shop.trialEndsAt && now < shop.trialEndsAt) {
     return {
       isActive: true,
+      planTier: "pro",
       expiresAt: shop.trialEndsAt,
     };
   }
 
+  // Grace period
   if (shop.gracePeriodEndsAt && now < shop.gracePeriodEndsAt) {
     return {
       isActive: true,
+      planTier: "pro",
       expiresAt: shop.gracePeriodEndsAt,
     };
   }
 
-  return inactive;
+  // Free tier — always active, but limited
+  return {
+    isActive: true,
+    planTier: "free",
+    expiresAt: LONG_LIVED_BILLING_ACCESS_EXPIRES_AT,
+  };
 }
 
 /**
@@ -612,13 +668,15 @@ function getBillingMetafieldSnapshot(shop) {
  * billing.active is paired with billing.expires_at so Liquid can
  * fail closed as soon as a trial or grace period ends, without waiting for
  * another admin visit.
+ *
+ * billing.plan_tier tells blocks whether to render (free vs pro).
  */
 export async function syncBillingMetafield(session, shop) {
   if (!session?.accessToken || !session?.shop) {
     return;
   }
 
-  const { isActive, expiresAt } = getBillingMetafieldSnapshot(shop);
+  const { isActive, expiresAt, planTier } = getBillingMetafieldSnapshot(shop);
 
   try {
     const appInstallationGid = await getAppInstallationGid(session);
@@ -661,6 +719,13 @@ export async function syncBillingMetafield(session, shop) {
                 ownerId: appInstallationGid,
                 type: "date_time",
                 value: expiresAt.toISOString(),
+              },
+              {
+                namespace: "billing",
+                key: "plan_tier",
+                ownerId: appInstallationGid,
+                type: "single_line_text_field",
+                value: planTier,
               },
             ],
           },

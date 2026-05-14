@@ -44,6 +44,7 @@ model Shop {
   accessToken           String?
   shopifyPlanName       String?
   subscriptionId        String?
+  currentPlan           String    @default("free")
   uninstalledAt         DateTime?
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt

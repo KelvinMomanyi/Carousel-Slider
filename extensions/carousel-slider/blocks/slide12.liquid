@@ -3,6 +3,7 @@
 assign cb=app.metafields.billing.active.value
 assign ce=app.metafields.billing.expires_at.value | date: '%s' | plus: 0
 assign cn='now' | date: '%s' | plus: 0
+assign cp=app.metafields.billing.plan_tier.value | default: 'free'
 assign ca=false
 if cb == true or cb == 'true'
 if ce > cn
@@ -81,6 +82,7 @@ endif
   class="shv-slider-wrapper gradient{% if block.settings.enable_gradient_background %} shv-gradient-enabled shv-gradient-{{ block.settings.gradient_shape }}{% endif %}{% if block.settings.text_color != blank %} has-slider-text-color{% endif %}{% if block.settings.text_font_size != blank %} has-slider-text-size{% endif %}{% if block.settings.button_color != blank %} has-slider-button-color{% endif %}{% if block.settings.button_text_color != blank %} has-slider-button-text-color{% endif %}{% if block.settings.button_font_size != blank %} has-slider-button-size{% endif %}"
   id="{{ section_id }}"
   data-carousel-billing-gate
+  data-plan-tier="pro"
   style="
     --theme-accent: var(--shv-accent);
     --theme-text: var(--shv-text);

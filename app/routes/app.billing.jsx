@@ -1,9 +1,20 @@
-import { createBillingApproval, requireBilling } from "../utils/billing.server";
+import { redirect } from "@remix-run/node";
 
+/**
+ * /app/billing now redirects to /app/pricing.
+ * The actual Shopify billing approval is triggered from the pricing page's
+ * action handler (POST /app/pricing).
+ */
 export const loader = async ({ request }) => {
-  const context = await requireBilling(request, { allowBillingPage: true });
+  const url = new URL(request.url);
+  const pricingUrl = new URL("/app/pricing", url.origin);
 
-  return createBillingApproval(request, context);
+  // Forward query params (shop, host, embedded)
+  for (const [key, value] of url.searchParams) {
+    pricingUrl.searchParams.set(key, value);
+  }
+
+  return redirect(`${pricingUrl.pathname}${pricingUrl.search}`);
 };
 
 export const action = loader;

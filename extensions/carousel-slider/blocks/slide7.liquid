@@ -3,6 +3,7 @@
 assign cb=app.metafields.billing.active.value
 assign ce=app.metafields.billing.expires_at.value | date: '%s' | plus: 0
 assign cn='now' | date: '%s' | plus: 0
+assign cp=app.metafields.billing.plan_tier.value | default: 'free'
 assign ca=false
 if cb == true or cb == 'true'
 if ce > cn
@@ -29,7 +30,7 @@ assign products_to_show = slider_collection.products_count | default: slider_col
 endif
 %}
 {% if slider_collection != blank and slider_collection.products_count > 0 %}
-<div id="{{ section_id }}" class="slider-09-root{% if block.settings.text_color != blank %} has-slider-text-color{% endif %}{% if block.settings.text_font_size != blank %} has-slider-text-size{% endif %}{% if block.settings.button_color != blank %} has-slider-button-color{% endif %}{% if block.settings.button_text_color != blank %} has-slider-button-text-color{% endif %}{% if block.settings.button_font_size != blank %} has-slider-button-size{% endif %}" data-carousel-billing-gate style="
+<div id="{{ section_id }}" class="slider-09-root{% if block.settings.text_color != blank %} has-slider-text-color{% endif %}{% if block.settings.text_font_size != blank %} has-slider-text-size{% endif %}{% if block.settings.button_color != blank %} has-slider-button-color{% endif %}{% if block.settings.button_text_color != blank %} has-slider-button-text-color{% endif %}{% if block.settings.button_font_size != blank %} has-slider-button-size{% endif %}" data-carousel-billing-gate data-plan-tier="pro" style="
 --s09-height: {{ block.settings.section_height }};
 {% if block.settings.text_color != blank %}--slider-style-text-color: {{ block.settings.text_color }};{% endif %}
 {% if block.settings.text_font_size != blank %}--slider-style-text-size: {{ block.settings.text_font_size }};{% endif %}

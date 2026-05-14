@@ -3,6 +3,24 @@
 if(window.__carouselBillingChecked)return;
 window.__carouselBillingChecked=true;
 function h(){var e=document.querySelectorAll('[data-carousel-billing-gate]');for(var i=0;i<e.length;i++)e[i].style.display='none'}
-fetch('/apps/carousel/billing-status').then(function(r){return r.json()}).then(function(d){if(d&&d.active===false)h()}).catch(h);
+function gateByPlan(plan){
+var gates=document.querySelectorAll('[data-carousel-billing-gate]');
+for(var i=0;i<gates.length;i++){
+var el=gates[i];
+var tier=el.getAttribute('data-plan-tier');
+if(!tier||tier==='free'){continue;}
+if(tier==='pro'&&plan!=='pro'){
+var msg=document.createElement('div');
+msg.className='carousel-upgrade-prompt';
+msg.innerHTML='<div style="text-align:center;padding:40px 20px;background:linear-gradient(135deg,#f8f9fa,#e9ecef);border-radius:12px;margin:20px 0;font-family:system-ui,-apple-system,sans-serif"><p style="font-size:18px;color:#495057;margin:0 0 8px">✨ This premium carousel layout is available on the <strong>Pro Plan</strong></p><p style="color:#868e96;font-size:14px;margin:0">Upgrade to unlock all 9 carousel styles and unlimited products</p></div>';
+el.parentNode.insertBefore(msg,el);
+el.style.display='none';
+}
+}
+}
+fetch('/apps/carousel/billing-status').then(function(r){return r.json()}).then(function(d){
+if(d&&d.active===false){h();return;}
+if(d&&d.plan){gateByPlan(d.plan);}
+}).catch(h);
 })();
 </script>
