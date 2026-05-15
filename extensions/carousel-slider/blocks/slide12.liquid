@@ -1,4 +1,5 @@
 {% render 'billing-gate' %}
+{% render 'analytics' %}
 {%- liquid
 assign cb=app.metafields.billing.active.value
 assign ce=app.metafields.billing.expires_at.value | date: '%s' | plus: 0

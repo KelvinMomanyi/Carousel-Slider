@@ -299,19 +299,6 @@ export default function Index() {
                   </Link>
                 </BlockStack>
               </Card>
-
-              <Card>
-                <BlockStack gap="200">
-                  <Text as="h2" variant="headingMd">Performance</Text>
-                  <List>
-                    <List.Item>Zero jQuery — pure vanilla JS</List.Item>
-                    <List.Item>Lazy-loaded images</List.Item>
-                    <List.Item>Deferred script loading</List.Item>
-                    <List.Item>CSS-only animations</List.Item>
-                    <List.Item>Theme App Extension — no code injection</List.Item>
-                  </List>
-                </BlockStack>
-              </Card>
             </BlockStack>
           </Layout.Section>
         </Layout>

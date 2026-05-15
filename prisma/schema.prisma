@@ -50,3 +50,31 @@ model Shop {
   updatedAt             DateTime  @updatedAt
 }
 
+model CarouselEvent {
+  id        String   @id @default(uuid())
+  shop      String
+  blockName String
+  eventType String
+  productId String?
+  variantId String?
+  pageUrl   String?
+  createdAt DateTime @default(now())
+
+  @@index([shop, createdAt])
+  @@index([shop, blockName, eventType])
+}
+
+model CarouselDailySummary {
+  id          String   @id @default(uuid())
+  shop        String
+  date        DateTime @db.Date
+  blockName   String
+  impressions Int      @default(0)
+  clicks      Int      @default(0)
+  addToCarts  Int      @default(0)
+
+  @@unique([shop, date, blockName])
+  @@index([shop, date])
+}
+
+
