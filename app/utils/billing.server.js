@@ -12,6 +12,7 @@ import {
   getShopPlanKey,
   getPlanLimits,
   isShopifyAuthError,
+  ShopifyAuthError,
   syncShopFromShopify,
 } from "./billing-state.server";
 
@@ -672,7 +673,7 @@ function getBillingMetafieldSnapshot(shop) {
  * billing.plan_tier tells blocks whether to render (free vs pro).
  */
 export async function syncBillingMetafield(session, shop) {
-  if (!session?.accessToken || !session?.shop) {
+  if (!session?.accessToken || !session?.shop || shop?.uninstalledAt) {
     return;
   }
 
@@ -682,99 +683,145 @@ export async function syncBillingMetafield(session, shop) {
     const appInstallationGid = await getAppInstallationGid(session);
 
     if (!appInstallationGid) {
-      throw new Error(
-        `Could not resolve app installation ID for ${session.shop}`,
+      console.warn(
+        `[Metafield] Skipping billing metafield sync: no current app installation for ${session.shop}`,
       );
+      return;
     }
 
-    const response = await fetch(
-      `https://${session.shop}/admin/api/${SHOP_PLAN_API_VERSION}/graphql.json`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Shopify-Access-Token": session.accessToken,
-        },
-        body: JSON.stringify({
-          query: `
-            mutation MetafieldsSet($metafields: [MetafieldsSetInput!]!) {
-              metafieldsSet(metafields: $metafields) {
-                metafields { id namespace key value }
-                userErrors { field message }
-              }
-            }
-          `,
-          variables: {
-            metafields: [
-              {
-                namespace: "billing",
-                key: "active",
-                ownerId: appInstallationGid,
-                type: "boolean",
-                value: String(isActive),
-              },
-              {
-                namespace: "billing",
-                key: "expires_at",
-                ownerId: appInstallationGid,
-                type: "date_time",
-                value: expiresAt.toISOString(),
-              },
-              {
-                namespace: "billing",
-                key: "plan_tier",
-                ownerId: appInstallationGid,
-                type: "single_line_text_field",
-                value: planTier,
-              },
-            ],
+    const result = await shopifyAdminGraphql(session, {
+      query: `
+        mutation MetafieldsSet($metafields: [MetafieldsSetInput!]!) {
+          metafieldsSet(metafields: $metafields) {
+            metafields { id namespace key value }
+            userErrors { field message }
+          }
+        }
+      `,
+      variables: {
+        metafields: [
+          {
+            namespace: "billing",
+            key: "active",
+            ownerId: appInstallationGid,
+            type: "boolean",
+            value: String(isActive),
           },
-        }),
+          {
+            namespace: "billing",
+            key: "expires_at",
+            ownerId: appInstallationGid,
+            type: "date_time",
+            value: expiresAt.toISOString(),
+          },
+          {
+            namespace: "billing",
+            key: "plan_tier",
+            ownerId: appInstallationGid,
+            type: "single_line_text_field",
+            value: planTier,
+          },
+        ],
       },
-    );
+    });
 
-    const result = await response.json();
-
-    if (result.data?.metafieldsSet?.userErrors?.length) {
+    if (result.metafieldsSet?.userErrors?.length) {
       console.error(
         "[Metafield] Sync errors:",
-        result.data.metafieldsSet.userErrors,
+        result.metafieldsSet.userErrors,
       );
     }
   } catch (error) {
-    // Non-fatal — the app proxy JS check is the fallback
+    if (isShopifyAuthError(error)) {
+      await clearStoredShopAuth(error.shop || session.shop).catch(
+        (clearError) => {
+          console.error(
+            "[Metafield] Failed to clear rejected shop auth:",
+            clearError,
+          );
+        },
+      );
+
+      console.warn(
+        `[Metafield] Skipping billing metafield sync: Shopify rejected stored token for ${error.shop || session.shop}`,
+      );
+      return;
+    }
+
+    // Non-fatal - the app proxy JS check is the fallback
     console.error("[Metafield] Failed to sync billing metafield:", error);
   }
+}
+
+async function shopifyAdminGraphql(session, { query, variables }) {
+  const response = await fetch(
+    `https://${session.shop}/admin/api/${SHOP_PLAN_API_VERSION}/graphql.json`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Shopify-Access-Token": session.accessToken,
+      },
+      body: JSON.stringify({ query, variables }),
+    },
+  );
+
+  let payload;
+  try {
+    payload = await response.json();
+  } catch {
+    payload = null;
+  }
+
+  if (response.status === 401) {
+    throw new ShopifyAuthError(
+      `Shopify rejected the stored access token for ${session.shop}`,
+      { shop: session.shop, status: response.status },
+    );
+  }
+
+  if (!response.ok) {
+    throw new Error(
+      `Shopify GraphQL request failed for ${session.shop}: ${response.status} ${response.statusText}${formatGraphqlErrors(payload?.errors)}`,
+    );
+  }
+
+  if (!payload) {
+    throw new Error(
+      `Shopify GraphQL request returned invalid JSON for ${session.shop}`,
+    );
+  }
+
+  if (payload?.errors?.length) {
+    throw new Error(
+      `Shopify GraphQL errors for ${session.shop}:${formatGraphqlErrors(payload.errors)}`,
+    );
+  }
+
+  return payload?.data || {};
+}
+
+function formatGraphqlErrors(errors) {
+  if (!errors?.length) {
+    return "";
+  }
+
+  return ` ${errors.map((error) => error.message).join(", ")}`;
 }
 
 /**
  * Retrieves the app installation ID needed for app-data metafields.
  */
 async function getAppInstallationGid(session) {
-  try {
-    const response = await fetch(
-      `https://${session.shop}/admin/api/${SHOP_PLAN_API_VERSION}/graphql.json`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Shopify-Access-Token": session.accessToken,
-        },
-        body: JSON.stringify({
-          query: `
-            query CurrentAppInstallation {
-              currentAppInstallation {
-                id
-              }
-            }
-          `,
-        }),
-      },
-    );
+  const data = await shopifyAdminGraphql(session, {
+    query: `
+      query CurrentAppInstallation {
+        currentAppInstallation {
+          id
+        }
+      }
+    `,
+  });
 
-    const data = await response.json();
-    return data.data?.currentAppInstallation?.id || null;
-  } catch {
-    return null;
-  }
+  return data.currentAppInstallation?.id || null;
 }
