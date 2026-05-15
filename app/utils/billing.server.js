@@ -364,14 +364,20 @@ export async function createBillingApproval(request, authenticatedContext) {
     authenticatedContext || (await authenticate.admin(request));
   const billing = authenticatedContext?.billing;
 
+  const requestUrl = new URL(request.url);
+  const host = requestUrl.searchParams.get("host");
+
   if (billing?.isDevStore) {
-    return redirect("/app");
+    const devRedirectUrl = new URL("/app", requestUrl.origin);
+    devRedirectUrl.searchParams.set("shop", session.shop);
+    if (host) {
+      devRedirectUrl.searchParams.set("host", host);
+    }
+    return redirect(`${devRedirectUrl.pathname}${devRedirectUrl.search}`);
   }
 
-  const requestUrl = new URL(request.url);
   const baseUrl = process.env.SHOPIFY_APP_URL || requestUrl.origin;
   const returnUrl = new URL("/app", baseUrl);
-  const host = requestUrl.searchParams.get("host");
   const remainingTrialDays = billing?.isTrialActive
     ? Math.max(0, billing.trialDaysRemaining || 0)
     : 0;
