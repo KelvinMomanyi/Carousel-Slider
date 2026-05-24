@@ -4,7 +4,7 @@
 assign cb=app.metafields.billing.active.value
 assign ce=app.metafields.billing.expires_at.value | date: '%s' | plus: 0
 assign cn='now' | date: '%s' | plus: 0
-assign cp=app.metafields.billing.plan_tier.value | default: 'free'
+assign cpt=app.metafields.billing.plan_tier.value | default: 'free'
 assign ca=false
 if cb == true or cb == 'true'
 if ce > cn
@@ -12,24 +12,25 @@ assign ca=true
 endif
 endif
 -%}
-{%- if ca -%}
+{%- if ca and cpt == 'pro' -%}
+{%- assign s=block.settings -%}
 {{ 'slider-10.css' | asset_url | stylesheet_tag }}
 <script src="{{ 'slider-10.js' | asset_url }}" defer></script>
 {% liquid
 assign section_id = 'slider-10-' | append: block.id
-if block.settings.selected_collection != blank
-assign slider_collection = collections[block.settings.selected_collection]
+if s.selected_collection != blank
+assign slider_collection = collections[s.selected_collection]
 else
 assign slider_collection = collections.all
 endif
-assign products_limit = block.settings.products_limit | default: 3
-assign products_display_mode = block.settings.products_display_mode | default: 'limited'
+assign products_limit = s.products_limit | default: 3
+assign products_display_mode = s.products_display_mode | default: 'limited'
 assign products_to_show = products_limit
 if products_display_mode == 'all'
 assign products_to_show = slider_collection.products_count | default: slider_collection.products.size
 endif
 assign use_custom_colors = false
-if block.settings.color_scheme_mode == 'custom'
+if s.color_scheme_mode == 'custom'
 assign use_custom_colors = true
 endif
 assign parent_color_scheme = section.settings.color_scheme
@@ -52,20 +53,20 @@ assign effective_outline_color = parent_color_scheme.settings.secondary_button_l
 assign effective_error_color = parent_color_scheme.settings.error
 endif
 if use_custom_colors
-if block.settings.custom_background_color != blank
-assign effective_background_color = block.settings.custom_background_color
+if s.custom_background_color != blank
+assign effective_background_color = s.custom_background_color
 endif
-if block.settings.custom_text_color != blank
-assign effective_text_color = block.settings.custom_text_color
+if s.custom_text_color != blank
+assign effective_text_color = s.custom_text_color
 endif
-if block.settings.custom_button_color != blank
-assign effective_button_color = block.settings.custom_button_color
+if s.custom_button_color != blank
+assign effective_button_color = s.custom_button_color
 endif
-if block.settings.custom_button_text_color != blank
-assign effective_button_text_color = block.settings.custom_button_text_color
+if s.custom_button_text_color != blank
+assign effective_button_text_color = s.custom_button_text_color
 endif
-if block.settings.custom_outline_color != blank
-assign effective_outline_color = block.settings.custom_outline_color
+if s.custom_outline_color != blank
+assign effective_outline_color = s.custom_outline_color
 endif
 endif
 assign readable_text_color = blank
@@ -161,102 +162,102 @@ endif
 {% if slider_collection != blank and slider_collection.products_count > 0 %}
 <div
 id="{{ section_id }}"
-class="slider-10-root gradient{% if block.settings.text_color != blank %} has-slider-text-color{% endif %}{% if block.settings.text_font_size != blank %} has-slider-text-size{% endif %}{% if block.settings.button_color != blank %} has-slider-button-color{% endif %}{% if block.settings.button_text_color != blank %} has-slider-button-text-color{% endif %}{% if block.settings.button_font_size != blank %} has-slider-button-size{% endif %}" data-block-id="{{ block.id }}"
-  data-carousel-billing-gate
-  data-plan-tier="pro"
+class="slider-10-root gradient{% if s.text_color != blank %} has-slider-text-color{% endif %}{% if s.text_font_size != blank %} has-slider-text-size{% endif %}{% if s.button_color != blank %} has-slider-button-color{% endif %}{% if s.button_text_color != blank %} has-slider-button-text-color{% endif %}{% if s.button_font_size != blank %} has-slider-button-size{% endif %}" data-block-id="{{ block.id }}"
+data-carousel-billing-gate
+data-plan-tier="pro"
 style="
-{% if block.settings.text_color != blank %}
-  --slider-style-text-color: {{ block.settings.text_color }};
+{% if s.text_color != blank %}
+--slider-style-text-color: {{ s.text_color }};
 {% endif %}
-{% if block.settings.text_font_size != blank %}
-  --slider-style-text-size: {{ block.settings.text_font_size }};
+{% if s.text_font_size != blank %}
+--slider-style-text-size: {{ s.text_font_size }};
 {% endif %}
-{% if block.settings.button_color != blank %}
-  --slider-style-button-color: {{ block.settings.button_color }};
+{% if s.button_color != blank %}
+--slider-style-button-color: {{ s.button_color }};
 {% endif %}
-{% if block.settings.button_text_color != blank %}
-  --slider-style-button-text-color: {{ block.settings.button_text_color }};
+{% if s.button_text_color != blank %}
+--slider-style-button-text-color: {{ s.button_text_color }};
 {% endif %}
-{% if block.settings.button_font_size != blank %}
-  --slider-style-button-size: {{ block.settings.button_font_size }};
+{% if s.button_font_size != blank %}
+--slider-style-button-size: {{ s.button_font_size }};
 {% endif %}
 {% if has_parent_color_scheme %}
-  {% if parent_color_scheme.settings.background != blank %}
-    --slider-background-rgb: {{ parent_color_scheme.settings.background.red }}, {{ parent_color_scheme.settings.background.green }}, {{ parent_color_scheme.settings.background.blue }};
-    --slider-background: {{ parent_color_scheme.settings.background }};
-  {% endif %}
-  {% if parent_color_scheme.settings.background_gradient != blank %}
-    --slider-custom-background: {{ parent_color_scheme.settings.background_gradient }};
-  {% endif %}
-  {% if parent_color_scheme.settings.text != blank %}
-    --slider-foreground-rgb: {{ parent_color_scheme.settings.text.red }}, {{ parent_color_scheme.settings.text.green }}, {{ parent_color_scheme.settings.text.blue }};
-    --slider-foreground: {{ parent_color_scheme.settings.text }};
-  {% endif %}
-  {% if parent_color_scheme.settings.button != blank %}
-    --slider-button-rgb: {{ parent_color_scheme.settings.button.red }}, {{ parent_color_scheme.settings.button.green }}, {{ parent_color_scheme.settings.button.blue }};
-    --slider-accent: {{ parent_color_scheme.settings.button }};
-  {% endif %}
-  {% if parent_color_scheme.settings.secondary_button_label != blank %}
-    --slider-secondary-rgb: {{ parent_color_scheme.settings.secondary_button_label.red }}, {{ parent_color_scheme.settings.secondary_button_label.green }}, {{ parent_color_scheme.settings.secondary_button_label.blue }};
-    --slider-accent-secondary: {{ parent_color_scheme.settings.secondary_button_label }};
-  {% endif %}
-  {% if parent_color_scheme.settings.button_label != blank %}
-    --slider-button-text-rgb: {{ parent_color_scheme.settings.button_label.red }}, {{ parent_color_scheme.settings.button_label.green }}, {{ parent_color_scheme.settings.button_label.blue }};
-    --slider-on-accent: {{ parent_color_scheme.settings.button_label }};
-  {% endif %}
-  {% if parent_color_scheme.settings.shadow != blank %}
-    --slider-shadow-rgb: {{ parent_color_scheme.settings.shadow.red }}, {{ parent_color_scheme.settings.shadow.green }}, {{ parent_color_scheme.settings.shadow.blue }};
-  {% endif %}
+{% if parent_color_scheme.settings.background != blank %}
+--slider-background-rgb: {{ parent_color_scheme.settings.background.red }}, {{ parent_color_scheme.settings.background.green }}, {{ parent_color_scheme.settings.background.blue }};
+--slider-background: {{ parent_color_scheme.settings.background }};
 {% endif %}
-{% if use_custom_colors and block.settings.custom_background_color != blank %}
-  --slider-background-rgb: {{ block.settings.custom_background_color.red }}, {{ block.settings.custom_background_color.green }}, {{ block.settings.custom_background_color.blue }};
-  --slider-background: {{ block.settings.custom_background_color }};
+{% if parent_color_scheme.settings.background_gradient != blank %}
+--slider-custom-background: {{ parent_color_scheme.settings.background_gradient }};
 {% endif %}
-{% if use_custom_colors and block.settings.custom_text_color != blank %}
-  --slider-foreground-rgb: {{ block.settings.custom_text_color.red }}, {{ block.settings.custom_text_color.green }}, {{ block.settings.custom_text_color.blue }};
-  --slider-foreground: {{ block.settings.custom_text_color }};
+{% if parent_color_scheme.settings.text != blank %}
+--slider-foreground-rgb: {{ parent_color_scheme.settings.text.red }}, {{ parent_color_scheme.settings.text.green }}, {{ parent_color_scheme.settings.text.blue }};
+--slider-foreground: {{ parent_color_scheme.settings.text }};
 {% endif %}
-{% if use_custom_colors and block.settings.custom_button_color != blank %}
-  --slider-button-rgb: {{ block.settings.custom_button_color.red }}, {{ block.settings.custom_button_color.green }}, {{ block.settings.custom_button_color.blue }};
-  --slider-accent: {{ block.settings.custom_button_color }};
+{% if parent_color_scheme.settings.button != blank %}
+--slider-button-rgb: {{ parent_color_scheme.settings.button.red }}, {{ parent_color_scheme.settings.button.green }}, {{ parent_color_scheme.settings.button.blue }};
+--slider-accent: {{ parent_color_scheme.settings.button }};
 {% endif %}
-{% if use_custom_colors and block.settings.custom_outline_color != blank %}
-  --slider-secondary-rgb: {{ block.settings.custom_outline_color.red }}, {{ block.settings.custom_outline_color.green }}, {{ block.settings.custom_outline_color.blue }};
-  --slider-accent-secondary: {{ block.settings.custom_outline_color }};
+{% if parent_color_scheme.settings.secondary_button_label != blank %}
+--slider-secondary-rgb: {{ parent_color_scheme.settings.secondary_button_label.red }}, {{ parent_color_scheme.settings.secondary_button_label.green }}, {{ parent_color_scheme.settings.secondary_button_label.blue }};
+--slider-accent-secondary: {{ parent_color_scheme.settings.secondary_button_label }};
 {% endif %}
-{% if use_custom_colors and block.settings.custom_button_text_color != blank %}
-  --slider-button-text-rgb: {{ block.settings.custom_button_text_color.red }}, {{ block.settings.custom_button_text_color.green }}, {{ block.settings.custom_button_text_color.blue }};
-  --slider-on-accent: {{ block.settings.custom_button_text_color }};
+{% if parent_color_scheme.settings.button_label != blank %}
+--slider-button-text-rgb: {{ parent_color_scheme.settings.button_label.red }}, {{ parent_color_scheme.settings.button_label.green }}, {{ parent_color_scheme.settings.button_label.blue }};
+--slider-on-accent: {{ parent_color_scheme.settings.button_label }};
 {% endif %}
-{% if use_custom_colors and block.settings.custom_shadow_color != blank %}
-  --slider-shadow-rgb: {{ block.settings.custom_shadow_color.red }}, {{ block.settings.custom_shadow_color.green }}, {{ block.settings.custom_shadow_color.blue }};
+{% if parent_color_scheme.settings.shadow != blank %}
+--slider-shadow-rgb: {{ parent_color_scheme.settings.shadow.red }}, {{ parent_color_scheme.settings.shadow.green }}, {{ parent_color_scheme.settings.shadow.blue }};
 {% endif %}
-{% if use_custom_colors and block.settings.custom_background_gradient != blank %}
-  --slider-custom-background: {{ block.settings.custom_background_gradient }};
-{% elsif use_custom_colors and block.settings.custom_background_color != blank %}
-  --slider-custom-background: {{ block.settings.custom_background_color }};
+{% endif %}
+{% if use_custom_colors and s.custom_background_color != blank %}
+--slider-background-rgb: {{ s.custom_background_color.red }}, {{ s.custom_background_color.green }}, {{ s.custom_background_color.blue }};
+--slider-background: {{ s.custom_background_color }};
+{% endif %}
+{% if use_custom_colors and s.custom_text_color != blank %}
+--slider-foreground-rgb: {{ s.custom_text_color.red }}, {{ s.custom_text_color.green }}, {{ s.custom_text_color.blue }};
+--slider-foreground: {{ s.custom_text_color }};
+{% endif %}
+{% if use_custom_colors and s.custom_button_color != blank %}
+--slider-button-rgb: {{ s.custom_button_color.red }}, {{ s.custom_button_color.green }}, {{ s.custom_button_color.blue }};
+--slider-accent: {{ s.custom_button_color }};
+{% endif %}
+{% if use_custom_colors and s.custom_outline_color != blank %}
+--slider-secondary-rgb: {{ s.custom_outline_color.red }}, {{ s.custom_outline_color.green }}, {{ s.custom_outline_color.blue }};
+--slider-accent-secondary: {{ s.custom_outline_color }};
+{% endif %}
+{% if use_custom_colors and s.custom_button_text_color != blank %}
+--slider-button-text-rgb: {{ s.custom_button_text_color.red }}, {{ s.custom_button_text_color.green }}, {{ s.custom_button_text_color.blue }};
+--slider-on-accent: {{ s.custom_button_text_color }};
+{% endif %}
+{% if use_custom_colors and s.custom_shadow_color != blank %}
+--slider-shadow-rgb: {{ s.custom_shadow_color.red }}, {{ s.custom_shadow_color.green }}, {{ s.custom_shadow_color.blue }};
+{% endif %}
+{% if use_custom_colors and s.custom_background_gradient != blank %}
+--slider-custom-background: {{ s.custom_background_gradient }};
+{% elsif use_custom_colors and s.custom_background_color != blank %}
+--slider-custom-background: {{ s.custom_background_color }};
 {% endif %}
 {% if enforce_readable_text %}
-  --slider-foreground-rgb: {{ readable_text_rgb }};
-  --slider-foreground: {{ readable_text_color }};
+--slider-foreground-rgb: {{ readable_text_rgb }};
+--slider-foreground: {{ readable_text_color }};
 {% endif %}
 {% if enforce_readable_accent %}
-  --slider-button-rgb: {{ readable_text_rgb }};
-  --slider-accent: {{ readable_text_color }};
+--slider-button-rgb: {{ readable_text_rgb }};
+--slider-accent: {{ readable_text_color }};
 {% endif %}
 {% if enforce_readable_outline %}
-  --slider-secondary-rgb: {{ readable_text_rgb }};
-  --slider-accent-secondary: {{ readable_text_color }};
+--slider-secondary-rgb: {{ readable_text_rgb }};
+--slider-accent-secondary: {{ readable_text_color }};
 {% endif %}
 {% if enforce_readable_button_text %}
-  --slider-button-text-rgb: {{ readable_button_text_rgb }};
-  --slider-on-accent: {{ readable_button_text_color }};
+--slider-button-text-rgb: {{ readable_button_text_rgb }};
+--slider-on-accent: {{ readable_button_text_color }};
 {% endif %}
 {% if enforce_readable_error %}
-  --slider-error-rgb: {{ readable_text_rgb }};
-  --slider-error: {{ readable_text_color }};
+--slider-error-rgb: {{ readable_text_rgb }};
+--slider-error: {{ readable_text_color }};
 {% endif %}
---s10-height: {{ block.settings.section_height }};
+--s10-height: {{ s.section_height }};
 "
 {{ block.shopify_attributes }}
 >
@@ -296,12 +297,10 @@ style="
 </div>
 </div>
 </div>
-{% comment %}Styles and script moved to slider-10.css and slider-10.js assets{% endcomment %}
 {% else %}
 <div class="slider-liquid-empty" {{ block.shopify_attributes }}>Select a collection with products to render this slider.</div>
 {% endif %}
 {%- endif -%}
-
 {% schema %}
 {"name":"Carousel Vanish","settings":[{"type":"collection","id":"selected_collection","label":"Collection"},{"type":"select","id":"products_display_mode","label":"Products to show","options":[{"value":"limited","label":"Set number"},{"value":"all","label":"All products"}],"default":"limited"},{"type":"range","id":"products_limit","label":"Number of products","min":2,"max":8,"step":1,"default":3},{"type":"header","content":"Style Settings"},{"type":"paragraph","content":"Native theme color scheme pickers are not supported in app blocks. Leave these overrides blank to inherit colors from the parent theme section or Apps wrapper."},{"type":"select","id":"color_scheme_mode","label":"Color scheme","options":[{"value":"inherit","label":"Inherit parent section"},{"value":"custom","label":"Use custom overrides"}],"default":"inherit"},{"type":"color","id":"custom_background_color","label":"Background color override"},{"type":"color_background","id":"custom_background_gradient","label":"Background gradient override"},{"type":"color","id":"custom_text_color","label":"Text color override"},{"type":"color","id":"custom_button_color","label":"Primary button/accent override"},{"type":"color","id":"custom_button_text_color","label":"Primary button text override"},{"type":"color","id":"custom_outline_color","label":"Secondary button/accent override"},{"type":"color","id":"custom_shadow_color","label":"Shadow color override"},{"type":"text","id":"section_height","label":"Section height","default":"700px"},{"type":"header","content":"Text and Button Styling"},{"type":"color","id":"text_color","label":"Text color"},{"type":"text","id":"text_font_size","label":"Text font size","info":"Use a CSS size, for example 18px or 1.2rem."},{"type":"color","id":"button_color","label":"Button color"},{"type":"color","id":"button_text_color","label":"Button text color"},{"type":"text","id":"button_font_size","label":"Button font size","info":"Use a CSS size, for example 16px or 1rem."}],"target":"section"}
 {% endschema %}

@@ -4,7 +4,7 @@
 assign cb=app.metafields.billing.active.value
 assign ce=app.metafields.billing.expires_at.value | date: '%s' | plus: 0
 assign cn='now' | date: '%s' | plus: 0
-assign cp=app.metafields.billing.plan_tier.value | default: 'free'
+assign cpt=app.metafields.billing.plan_tier.value | default: 'free'
 assign ca=false
 if cb == true or cb == 'true'
 if ce > cn
@@ -12,16 +12,17 @@ assign ca=true
 endif
 endif
 -%}
-{%- if ca -%}
+{%- if ca and cpt == 'pro' -%}
+{%- assign s=block.settings -%}
 {% liquid
 assign section_id = 'slider-13-' | append: block.id
-if block.settings.selected_collection != blank
-assign slider_collection = collections[block.settings.selected_collection]
+if s.selected_collection != blank
+assign slider_collection = collections[s.selected_collection]
 else
 assign slider_collection = collections.all
 endif
-assign products_limit = block.settings.products_limit | default: 8
-assign products_display_mode = block.settings.products_display_mode | default: 'limited'
+assign products_limit = s.products_limit | default: 8
+assign products_display_mode = s.products_display_mode | default: 'limited'
 assign products_to_show = products_limit
 if products_display_mode == 'all'
 assign products_to_show = slider_collection.products_count | default: slider_collection.products.size
@@ -32,16 +33,16 @@ endif
 <script src="{{ 'slider-13.js' | asset_url }}" defer></script>
 <div
 id="{{ section_id }}"
-class="slider-13-root{% if block.settings.text_color != blank %} has-slider-text-color{% endif %}{% if block.settings.text_font_size != blank %} has-slider-text-size{% endif %}{% if block.settings.button_color != blank %} has-slider-button-color{% endif %}{% if block.settings.button_text_color != blank %} has-slider-button-text-color{% endif %}{% if block.settings.button_font_size != blank %} has-slider-button-size{% endif %}"
-data-autoplay-speed="{{ block.settings.autoplay_speed | default: 3 }}"
+class="slider-13-root{% if s.text_color != blank %} has-slider-text-color{% endif %}{% if s.text_font_size != blank %} has-slider-text-size{% endif %}{% if s.button_color != blank %} has-slider-button-color{% endif %}{% if s.button_text_color != blank %} has-slider-button-text-color{% endif %}{% if s.button_font_size != blank %} has-slider-button-size{% endif %}"
+data-autoplay-speed="{{ s.autoplay_speed | default: 3 }}"
 data-carousel-billing-gate
 data-plan-tier="pro"
 style="
-{% if block.settings.text_color != blank %}--slider-style-text-color: {{ block.settings.text_color }};{% endif %}
-{% if block.settings.text_font_size != blank %}--slider-style-text-size: {{ block.settings.text_font_size }};{% endif %}
-{% if block.settings.button_color != blank %}--slider-style-button-color: {{ block.settings.button_color }};{% endif %}
-{% if block.settings.button_text_color != blank %}--slider-style-button-text-color: {{ block.settings.button_text_color }};{% endif %}
-{% if block.settings.button_font_size != blank %}--slider-style-button-size: {{ block.settings.button_font_size }};{% endif %}
+{% if s.text_color != blank %}--slider-style-text-color: {{ s.text_color }};{% endif %}
+{% if s.text_font_size != blank %}--slider-style-text-size: {{ s.text_font_size }};{% endif %}
+{% if s.button_color != blank %}--slider-style-button-color: {{ s.button_color }};{% endif %}
+{% if s.button_text_color != blank %}--slider-style-button-text-color: {{ s.button_text_color }};{% endif %}
+{% if s.button_font_size != blank %}--slider-style-button-size: {{ s.button_font_size }};{% endif %}
 "
 {{ block.shopify_attributes }}
 >
@@ -99,15 +100,13 @@ loading="lazy"
 </div>
 <style>
 #{{ section_id }} {
-  min-height: {{ block.settings.section_height }};
+min-height: {{ s.section_height }};
 }
 </style>
-
 {% else %}
 <div class="slider-liquid-empty" {{ block.shopify_attributes }}>Select a collection with products to render this slider.</div>
 {% endif %}
 {%- endif -%}
-
 {% schema %}
 {"name":"Carousel: Card Stack","settings":[{"type":"collection","id":"selected_collection","label":"Collection"},{"type":"select","id":"products_display_mode","label":"Products to show","options":[{"value":"limited","label":"Set number"},{"value":"all","label":"All products"}],"default":"limited"},{"type":"range","id":"products_limit","label":"Number of products","min":3,"max":10,"step":1,"default":8},{"type":"text","id":"section_height","label":"Section height","default":"560px"},{"type":"range","id":"autoplay_speed","label":"Autoplay speed (seconds)","min":1,"max":10,"step":1,"default":3},{"type":"header","content":"Text and Button Styling"},{"type":"color","id":"text_color","label":"Text color"},{"type":"text","id":"text_font_size","label":"Text font size","info":"Use a CSS size, for example 18px or 1.2rem."},{"type":"color","id":"button_color","label":"Button color"},{"type":"color","id":"button_text_color","label":"Button text color"},{"type":"text","id":"button_font_size","label":"Button font size","info":"Use a CSS size, for example 16px or 1rem."}],"target":"section"}
 {% endschema %}

@@ -4,7 +4,7 @@
 assign cb=app.metafields.billing.active.value
 assign ce=app.metafields.billing.expires_at.value | date: '%s' | plus: 0
 assign cn='now' | date: '%s' | plus: 0
-assign cp=app.metafields.billing.plan_tier.value | default: 'free'
+assign cpt=app.metafields.billing.plan_tier.value | default: 'free'
 assign ca=false
 if cb == true or cb == 'true'
 if ce > cn
@@ -12,32 +12,32 @@ assign ca=true
 endif
 endif
 -%}
-{%- if ca -%}
+{%- if ca and cpt == 'pro' -%}
+{%- assign s=block.settings -%}
 {{ 'slider-09.css' | asset_url | stylesheet_tag }}
 <script src="{{ 'slider-09.js' | asset_url }}" defer></script>
-
 {% liquid
 assign section_id = 'slider-09-' | append: block.id
-if block.settings.selected_collection != blank
-assign slider_collection = collections[block.settings.selected_collection]
+if s.selected_collection != blank
+assign slider_collection = collections[s.selected_collection]
 else
 assign slider_collection = collections.all
 endif
-assign products_limit = block.settings.products_limit | default: 3
-assign products_display_mode = block.settings.products_display_mode | default: 'limited'
+assign products_limit = s.products_limit | default: 3
+assign products_display_mode = s.products_display_mode | default: 'limited'
 assign products_to_show = products_limit
 if products_display_mode == 'all'
 assign products_to_show = slider_collection.products_count | default: slider_collection.products.size
 endif
 %}
 {% if slider_collection != blank and slider_collection.products_count > 0 %}
-<div id="{{ section_id }}" class="slider-09-root{% if block.settings.text_color != blank %} has-slider-text-color{% endif %}{% if block.settings.text_font_size != blank %} has-slider-text-size{% endif %}{% if block.settings.button_color != blank %} has-slider-button-color{% endif %}{% if block.settings.button_text_color != blank %} has-slider-button-text-color{% endif %}{% if block.settings.button_font_size != blank %} has-slider-button-size{% endif %}" data-carousel-billing-gate data-plan-tier="pro" style="
---s09-height: {{ block.settings.section_height }};
-{% if block.settings.text_color != blank %}--slider-style-text-color: {{ block.settings.text_color }};{% endif %}
-{% if block.settings.text_font_size != blank %}--slider-style-text-size: {{ block.settings.text_font_size }};{% endif %}
-{% if block.settings.button_color != blank %}--slider-style-button-color: {{ block.settings.button_color }};{% endif %}
-{% if block.settings.button_text_color != blank %}--slider-style-button-text-color: {{ block.settings.button_text_color }};{% endif %}
-{% if block.settings.button_font_size != blank %}--slider-style-button-size: {{ block.settings.button_font_size }};{% endif %}
+<div id="{{ section_id }}" class="slider-09-root{% if s.text_color != blank %} has-slider-text-color{% endif %}{% if s.text_font_size != blank %} has-slider-text-size{% endif %}{% if s.button_color != blank %} has-slider-button-color{% endif %}{% if s.button_text_color != blank %} has-slider-button-text-color{% endif %}{% if s.button_font_size != blank %} has-slider-button-size{% endif %}" data-carousel-billing-gate data-plan-tier="pro" style="
+--s09-height: {{ s.section_height }};
+{% if s.text_color != blank %}--slider-style-text-color: {{ s.text_color }};{% endif %}
+{% if s.text_font_size != blank %}--slider-style-text-size: {{ s.text_font_size }};{% endif %}
+{% if s.button_color != blank %}--slider-style-button-color: {{ s.button_color }};{% endif %}
+{% if s.button_text_color != blank %}--slider-style-button-text-color: {{ s.button_text_color }};{% endif %}
+{% if s.button_font_size != blank %}--slider-style-button-size: {{ s.button_font_size }};{% endif %}
 " {{ block.shopify_attributes }}>
 <div class="carousel">
 <div class="list">
@@ -45,9 +45,9 @@ endif
 {% assign active_variant = product.selected_or_first_available_variant %}
 {% assign mod = forloop.index0 | modulo: 3 %}
 {% case mod %}
-{% when 0 %}{% assign bg = block.settings.color_1 %}
-{% when 1 %}{% assign bg = block.settings.color_2 %}
-{% else %}{% assign bg = block.settings.color_3 %}
+{% when 0 %}{% assign bg = s.color_1 %}
+{% when 1 %}{% assign bg = s.color_2 %}
+{% else %}{% assign bg = s.color_3 %}
 {% endcase %}
 <div class="item{% if forloop.first %} active{% endif %}"
 style="--img-src: url('{{ product.featured_image | image_url: width: 1200 }}'); --bg-color: {{ bg }}; --title: '{{ product.title | escape }}'">
@@ -90,12 +90,10 @@ style="--img-src: url('{{ product.featured_image | image_url: width: 1200 }}'); 
 </ul>
 </div>
 </div>
-{% comment %}Styles and script moved to slider-09.css and slider-09.js assets{% endcomment %}
 {% else %}
 <div class="slider-liquid-empty" {{ block.shopify_attributes }}>Select a collection with products to render this slider.</div>
 {% endif %}
 {%- endif -%}
-
 {% schema %}
 {"name":"Carousel Elegance","settings":[{"type":"collection","id":"selected_collection","label":"Collection"},{"type":"select","id":"products_display_mode","label":"Products to show","options":[{"value":"limited","label":"Set number"},{"value":"all","label":"All products"}],"default":"limited"},{"type":"range","id":"products_limit","label":"Number of products","min":2,"max":8,"step":1,"default":3},{"type":"text","id":"section_height","label":"Section height","default":"720px"},{"type":"header","content":"Text and Button Styling"},{"type":"color","id":"text_color","label":"Text color"},{"type":"text","id":"text_font_size","label":"Text font size","info":"Use a CSS size, for example 18px or 1.2rem."},{"type":"color","id":"button_color","label":"Button color"},{"type":"color","id":"button_text_color","label":"Button text color"},{"type":"text","id":"button_font_size","label":"Button font size","info":"Use a CSS size, for example 16px or 1rem."},{"type":"color","id":"color_1","label":"Color 1","default":"#428372"},{"type":"color","id":"color_2","label":"Color 2","default":"#EEAA19"},{"type":"color","id":"color_3","label":"Color 3","default":"#e86c3f"}],"target":"section"}
 {% endschema %}

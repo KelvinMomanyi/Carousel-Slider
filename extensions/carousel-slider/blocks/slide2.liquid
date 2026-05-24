@@ -4,7 +4,7 @@
 assign cb=app.metafields.billing.active.value
 assign ce=app.metafields.billing.expires_at.value | date: '%s' | plus: 0
 assign cn='now' | date: '%s' | plus: 0
-assign cp=app.metafields.billing.plan_tier.value | default: 'free'
+assign cpt=app.metafields.billing.plan_tier.value | default: 'free'
 assign ca=false
 if cb == true or cb == 'true'
 if ce > cn
@@ -12,16 +12,17 @@ assign ca=true
 endif
 endif
 -%}
-{%- if ca -%}
+{%- if ca and cpt == 'pro' -%}
+{%- assign s=block.settings -%}
 {% liquid
 assign section_id = 'slider-03-' | append: block.id
-if block.settings.selected_collection != blank
-assign slider_collection = collections[block.settings.selected_collection]
+if s.selected_collection != blank
+assign slider_collection = collections[s.selected_collection]
 else
 assign slider_collection = collections.all
 endif
-assign products_limit = block.settings.products_limit | default: 6
-assign products_display_mode = block.settings.products_display_mode | default: 'limited'
+assign products_limit = s.products_limit | default: 6
+assign products_display_mode = s.products_display_mode | default: 'limited'
 assign products_to_show = products_limit
 if products_display_mode == 'all'
 assign products_to_show = slider_collection.products_count | default: slider_collection.products.size
@@ -32,17 +33,17 @@ endif
 {% if slider_collection != blank and slider_collection.products_count > 0 %}
 <div
 id="{{ section_id }}"
-class="slider-03-root{% if block.settings.text_color != blank %} has-slider-text-color{% endif %}{% if block.settings.text_font_size != blank %} has-slider-text-size{% endif %}{% if block.settings.button_color != blank %} has-slider-button-color{% endif %}{% if block.settings.button_text_color != blank %} has-slider-button-text-color{% endif %}{% if block.settings.button_font_size != blank %} has-slider-button-size{% endif %}"
+class="slider-03-root{% if s.text_color != blank %} has-slider-text-color{% endif %}{% if s.text_font_size != blank %} has-slider-text-size{% endif %}{% if s.button_color != blank %} has-slider-button-color{% endif %}{% if s.button_text_color != blank %} has-slider-button-text-color{% endif %}{% if s.button_font_size != blank %} has-slider-button-size{% endif %}"
 data-slider-03
 data-carousel-billing-gate
 data-plan-tier="pro"
 style="
---slider-03-height: {{ block.settings.section_height }};
-{% if block.settings.text_color != blank %}--slider-style-text-color: {{ block.settings.text_color }};{% endif %}
-{% if block.settings.text_font_size != blank %}--slider-style-text-size: {{ block.settings.text_font_size }};{% endif %}
-{% if block.settings.button_color != blank %}--slider-style-button-color: {{ block.settings.button_color }};{% endif %}
-{% if block.settings.button_text_color != blank %}--slider-style-button-text-color: {{ block.settings.button_text_color }};{% endif %}
-{% if block.settings.button_font_size != blank %}--slider-style-button-size: {{ block.settings.button_font_size }};{% endif %}
+--slider-03-height: {{ s.section_height }};
+{% if s.text_color != blank %}--slider-style-text-color: {{ s.text_color }};{% endif %}
+{% if s.text_font_size != blank %}--slider-style-text-size: {{ s.text_font_size }};{% endif %}
+{% if s.button_color != blank %}--slider-style-button-color: {{ s.button_color }};{% endif %}
+{% if s.button_text_color != blank %}--slider-style-button-text-color: {{ s.button_text_color }};{% endif %}
+{% if s.button_font_size != blank %}--slider-style-button-size: {{ s.button_font_size }};{% endif %}
 "
 {{ block.shopify_attributes }}
 >
@@ -122,7 +123,6 @@ Select a collection with products to render this slider.
 </div>
 {% endif %}
 {%- endif -%}
-
 {% schema %}
 {"name":"Carousel: Aerphone","target":"section","settings":[{"type":"header","content":"Content Settings"},{"type":"collection","id":"selected_collection","label":"Collection"},{"type":"select","id":"products_display_mode","label":"Products to show","options":[{"value":"limited","label":"Set number"},{"value":"all","label":"All products"}],"default":"limited"},{"type":"range","id":"products_limit","label":"Number of products","min":3,"max":12,"step":1,"default":6},{"type":"header","content":"Style Settings"},{"type":"text","id":"section_height","label":"Section height","default":"800px"},{"type":"header","content":"Text and Button Styling"},{"type":"color","id":"text_color","label":"Text color"},{"type":"text","id":"text_font_size","label":"Text font size","info":"Use a CSS size, for example 18px or 1.2rem."},{"type":"color","id":"button_color","label":"Button color"},{"type":"color","id":"button_text_color","label":"Button text color"},{"type":"text","id":"button_font_size","label":"Button font size","info":"Use a CSS size, for example 16px or 1rem."}]}
 {% endschema %}

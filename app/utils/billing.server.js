@@ -624,12 +624,12 @@ function getBillingMetafieldSnapshot(shop) {
     return inactive;
   }
 
-  // Dev stores
+  // Dev stores — full access with long-lived expiry (billing doesn't apply)
   if (shop.isDevStore) {
     return {
       isActive: true,
       planTier: "pro",
-      expiresAt: new Date(now.getTime() + DEV_STORE_BILLING_ACCESS_TTL_MS),
+      expiresAt: LONG_LIVED_BILLING_ACCESS_EXPIRES_AT,
     };
   }
 

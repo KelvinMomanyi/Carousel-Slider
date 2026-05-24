@@ -4,7 +4,7 @@
 assign cb=app.metafields.billing.active.value
 assign ce=app.metafields.billing.expires_at.value | date: '%s' | plus: 0
 assign cn='now' | date: '%s' | plus: 0
-assign cp=app.metafields.billing.plan_tier.value | default: 'free'
+assign cpt=app.metafields.billing.plan_tier.value | default: 'free'
 assign ca=false
 if cb == true or cb == 'true'
 if ce > cn
@@ -12,88 +12,87 @@ assign ca=true
 endif
 endif
 -%}
-{%- if ca -%}
+{%- if ca and cpt == 'pro' -%}
+{%- assign s=block.settings -%}
 {{ 'slider-07.css' | asset_url | stylesheet_tag }}
 <script src="{{ 'slider-07.js' | asset_url }}" defer></script>
 {% liquid
- assign section_id = 'slider-07-' | append: block.id
-if block.settings.selected_collection != blank
-assign slider_collection = collections[block.settings.selected_collection]
+assign section_id = 'slider-07-' | append: block.id
+if s.selected_collection != blank
+assign slider_collection = collections[s.selected_collection]
 else
- assign slider_collection = collections.all
- endif
- assign products_limit = block.settings.products_limit | default: 10
- assign products_display_mode = block.settings.products_display_mode | default: 'limited'
- assign products_to_show = products_limit
- if products_display_mode == 'all'
- assign products_to_show = slider_collection.products_count | default: slider_collection.products.size
- endif
+assign slider_collection = collections.all
+endif
+assign products_limit = s.products_limit | default: 10
+assign products_display_mode = s.products_display_mode | default: 'limited'
+assign products_to_show = products_limit
+if products_display_mode == 'all'
+assign products_to_show = slider_collection.products_count | default: slider_collection.products.size
+endif
 %}
 {% if slider_collection != blank and slider_collection.products_count > 0 %}
- <div id="{{ section_id }}" class="slider-07-root{% if block.settings.text_color != blank %} has-slider-text-color{% endif %}{% if block.settings.text_font_size != blank %} has-slider-text-size{% endif %}{% if block.settings.button_color != blank %} has-slider-button-color{% endif %}{% if block.settings.button_text_color != blank %} has-slider-button-text-color{% endif %}{% if block.settings.button_font_size != blank %} has-slider-button-size{% endif %}" data-carousel-billing-gate data-plan-tier="pro" data-slider-07-root style="
- --bg-color: {{ block.settings.bg_color | default: '#0b0c10' }};
- --bg-image-opacity: {{ block.settings.bg_image_opacity | divided_by: 100.0 | default: 1 }};
- --bg-image-blur: {{ block.settings.bg_image_blur | default: 0 }}px;
- --3d-perspective: {{ block.settings.perspective_3d | default: 1000 }}px;
- --3d-tilt: {{ block.settings.tilt_3d | default: -22 }}deg;
- --3d-radius: {{ block.settings.radius_3d | default: 420 }}px;
- --slider-07-section-height: {{ block.settings.section_height | default: '100vh' }};
- {% if block.settings.ambient_image != blank %}--slider-07-ambient-image: url({{ block.settings.ambient_image | image_url: width: 2200 }});{% endif %}
- {% if block.settings.text_color != blank %}--slider-style-text-color: {{ block.settings.text_color }};{% endif %}
- {% if block.settings.text_font_size != blank %}--slider-style-text-size: {{ block.settings.text_font_size }};{% endif %}
- {% if block.settings.button_color != blank %}--slider-style-button-color: {{ block.settings.button_color }};{% endif %}
- {% if block.settings.button_text_color != blank %}--slider-style-button-text-color: {{ block.settings.button_text_color }};{% endif %}
- {% if block.settings.button_font_size != blank %}--slider-style-button-size: {{ block.settings.button_font_size }};{% endif %}
- ">
-  {% if block.settings.bg_image != blank %}
-    <div class="main-bg-overlay" style="background-image: url({{ block.settings.bg_image | image_url: width: 2200 }}); background-size: {{ block.settings.bg_image_size | default: 'cover' }};"></div>
-  {% endif %}
- <div class="banner">
- <div class="slider" style="--quantity: {{ products_to_show }}">
- {% for product in slider_collection.products limit: products_to_show %}
- {% assign active_variant = product.selected_or_first_available_variant %}
- <div class="item" style="--position: {{ forloop.index }}" 
-      data-image="{{ product.featured_image | image_url: width: 900 }}" 
-      data-title="{{ product.title | escape }}" 
-      data-price="{{ active_variant.price | money_with_currency | escape }}" 
-      data-id="{{ active_variant.id }}"
-      data-available="{{ active_variant.available }}">
- {% if product.featured_image %}
- <img src="{{ product.featured_image | image_url: width: 900 }}" alt="{{ product.title | escape }}" width="{{ product.featured_image.width }}" height="{{ product.featured_image.height }}" loading="lazy">
+<div id="{{ section_id }}" class="slider-07-root{% if s.text_color != blank %} has-slider-text-color{% endif %}{% if s.text_font_size != blank %} has-slider-text-size{% endif %}{% if s.button_color != blank %} has-slider-button-color{% endif %}{% if s.button_text_color != blank %} has-slider-button-text-color{% endif %}{% if s.button_font_size != blank %} has-slider-button-size{% endif %}" data-carousel-billing-gate data-plan-tier="pro" data-slider-07-root style="
+--bg-color: {{ s.bg_color | default: '#0b0c10' }};
+--bg-image-opacity: {{ s.bg_image_opacity | divided_by: 100.0 | default: 1 }};
+--bg-image-blur: {{ s.bg_image_blur | default: 0 }}px;
+--3d-perspective: {{ s.perspective_3d | default: 1000 }}px;
+--3d-tilt: {{ s.tilt_3d | default: -22 }}deg;
+--3d-radius: {{ s.radius_3d | default: 420 }}px;
+--slider-07-section-height: {{ s.section_height | default: '100vh' }};
+{% if s.ambient_image != blank %}--slider-07-ambient-image: url({{ s.ambient_image | image_url: width: 2200 }});{% endif %}
+{% if s.text_color != blank %}--slider-style-text-color: {{ s.text_color }};{% endif %}
+{% if s.text_font_size != blank %}--slider-style-text-size: {{ s.text_font_size }};{% endif %}
+{% if s.button_color != blank %}--slider-style-button-color: {{ s.button_color }};{% endif %}
+{% if s.button_text_color != blank %}--slider-style-button-text-color: {{ s.button_text_color }};{% endif %}
+{% if s.button_font_size != blank %}--slider-style-button-size: {{ s.button_font_size }};{% endif %}
+">
+{% if s.bg_image != blank %}
+<div class="main-bg-overlay" style="background-image: url({{ s.bg_image | image_url: width: 2200 }}); background-size: {{ s.bg_image_size | default: 'cover' }};"></div>
 {% endif %}
- </div>
- {% endfor %}
- </div>
- <div class="content display-content">
-  <div class="active-product-display" id="activeDisplay-{{ block.id }}">
-    {% if slider_collection.products.size > 0 %}
-     {% assign initial_product = slider_collection.products.first %}
-     {% assign initial_variant = initial_product.selected_or_first_available_variant %}
-     <button type="button" class="close-display-btn" aria-label="Close">
-       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"></path></svg>
-     </button>
-     <img src="{{ initial_product.featured_image | image_url: width: 600 }}" id="activeImg-{{ block.id }}" alt="{{ initial_product.title | escape }}" width="{{ initial_product.featured_image.width }}" height="{{ initial_product.featured_image.height }}">
-     <div class="product-info-panel">
-       <h2 id="activeTitle-{{ block.id }}">{{ initial_product.title }}</h2>
-       <p id="activePrice-{{ block.id }}">{{ initial_variant.price | money_with_currency }}</p>
-       <form action="{{ routes.cart_add_url }}" method="post" id="activeForm-{{ block.id }}" class="active-product-form">
-         <input type="hidden" name="id" id="activeId-{{ block.id }}" value="{{ initial_variant.id }}">
-         <input type="hidden" name="quantity" value="1">
-         <button type="submit" class="btn" id="activeButton-{{ block.id }}"{% unless initial_variant.available %} disabled{% endunless %}>{% if initial_variant.available %}Add to Cart{% else %}Sold Out{% endif %}</button>
-       </form>
-       <p class="add-to-cart-feedback" id="activeFeedback-{{ block.id }}" aria-live="polite"></p>
-     </div>
-   {% endif %}
-  </div>
- </div>
- </div>
- </div>
- {% else %}
- <div class="slider-liquid-empty">Select a collection with products to render this slider.</div>
+<div class="banner">
+<div class="slider" style="--quantity: {{ products_to_show }}">
+{% for product in slider_collection.products limit: products_to_show %}
+{% assign active_variant = product.selected_or_first_available_variant %}
+<div class="item" style="--position: {{ forloop.index }}"
+data-image="{{ product.featured_image | image_url: width: 900 }}"
+data-title="{{ product.title | escape }}"
+data-price="{{ active_variant.price | money_with_currency | escape }}"
+data-id="{{ active_variant.id }}"
+data-available="{{ active_variant.available }}">
+{% if product.featured_image %}
+<img src="{{ product.featured_image | image_url: width: 900 }}" alt="{{ product.title | escape }}" width="{{ product.featured_image.width }}" height="{{ product.featured_image.height }}" loading="lazy">
 {% endif %}
-
+</div>
+{% endfor %}
+</div>
+<div class="content display-content">
+<div class="active-product-display" id="activeDisplay-{{ block.id }}">
+{% if slider_collection.products.size > 0 %}
+{% assign initial_product = slider_collection.products.first %}
+{% assign initial_variant = initial_product.selected_or_first_available_variant %}
+<button type="button" class="close-display-btn" aria-label="Close">
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+</button>
+<img src="{{ initial_product.featured_image | image_url: width: 600 }}" id="activeImg-{{ block.id }}" alt="{{ initial_product.title | escape }}" width="{{ initial_product.featured_image.width }}" height="{{ initial_product.featured_image.height }}">
+<div class="product-info-panel">
+<h2 id="activeTitle-{{ block.id }}">{{ initial_product.title }}</h2>
+<p id="activePrice-{{ block.id }}">{{ initial_variant.price | money_with_currency }}</p>
+<form action="{{ routes.cart_add_url }}" method="post" id="activeForm-{{ block.id }}" class="active-product-form">
+<input type="hidden" name="id" id="activeId-{{ block.id }}" value="{{ initial_variant.id }}">
+<input type="hidden" name="quantity" value="1">
+<button type="submit" class="btn" id="activeButton-{{ block.id }}"{% unless initial_variant.available %} disabled{% endunless %}>{% if initial_variant.available %}Add to Cart{% else %}Sold Out{% endif %}</button>
+</form>
+<p class="add-to-cart-feedback" id="activeFeedback-{{ block.id }}" aria-live="polite"></p>
+</div>
+{% endif %}
+</div>
+</div>
+</div>
+</div>
+{% else %}
+<div class="slider-liquid-empty">Select a collection with products to render this slider.</div>
+{% endif %}
 {%- endif -%}
-
 {% schema %}
 {"name":"Carousel: Orbit Ring","target":"section","settings":[{"type":"header","content":"Content Settings"},{"type":"collection","id":"selected_collection","label":"Collection"},{"type":"select","id":"products_display_mode","label":"Products to show","options":[{"value":"limited","label":"Set number"},{"value":"all","label":"All products"}],"default":"limited"},{"type":"range","id":"products_limit","label":"Number of products","min":4,"max":16,"step":1,"default":10},{"type":"header","content":"Style Settings"},{"type":"text","id":"section_height","label":"Section height","default":"100vh"},{"type":"header","content":"Text and Button Styling"},{"type":"color","id":"text_color","label":"Text color"},{"type":"text","id":"text_font_size","label":"Text font size","info":"Use a CSS size, for example 18px or 1.2rem."},{"type":"color","id":"button_color","label":"Button color"},{"type":"color","id":"button_text_color","label":"Button text color"},{"type":"text","id":"button_font_size","label":"Button font size","info":"Use a CSS size, for example 16px or 1rem."},{"type":"image_picker","id":"ambient_image","label":"Ambient background image"},{"type":"image_picker","id":"model_image","label":"Foreground model image"},{"type":"header","content":"Background Customization"},{"type":"color","id":"bg_color","label":"Background Color","default":"#0b0c10"},{"type":"image_picker","id":"bg_image","label":"Background Image"},{"type":"select","id":"bg_image_size","label":"Background Image Size","options":[{"value":"cover","label":"Cover"},{"value":"contain","label":"Contain"},{"value":"auto","label":"Auto"}],"default":"cover"},{"type":"range","id":"bg_image_opacity","label":"Background Image Opacity","min":0,"max":100,"step":5,"default":100,"unit":"%"},{"type":"range","id":"bg_image_blur","label":"Background Image Blur","min":0,"max":50,"step":1,"default":0,"unit":"px"},{"type":"header","content":"3D Camera Settings"},{"type":"range","id":"perspective_3d","label":"3D Perspective (Depth)","min":400,"max":2000,"step":50,"default":1000,"unit":"px"},{"type":"range","id":"tilt_3d","label":"3D Tilt Angle","min":-45,"max":45,"step":1,"default":-22,"unit":"deg"},{"type":"range","id":"radius_3d","label":"Ring Circumference","info":"Controls how far apart the cards are from each other","min":200,"max":1200,"step":10,"default":420,"unit":"px"}]}
 {% endschema %}

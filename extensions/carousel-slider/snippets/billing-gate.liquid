@@ -2,7 +2,7 @@
 (function(){
 if(window.__carouselBillingChecked)return;
 window.__carouselBillingChecked=true;
-function h(){var e=document.querySelectorAll('[data-carousel-billing-gate]');for(var i=0;i<e.length;i++)e[i].style.display='none'}
+function h(){var e=document.querySelectorAll('[data-carousel-billing-gate][data-plan-tier="pro"]');for(var i=0;i<e.length;i++)e[i].style.display='none'}
 function gateByPlan(plan){
 var gates=document.querySelectorAll('[data-carousel-billing-gate]');
 for(var i=0;i<gates.length;i++){

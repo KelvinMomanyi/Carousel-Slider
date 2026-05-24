@@ -4,7 +4,7 @@
 assign cb=app.metafields.billing.active.value
 assign ce=app.metafields.billing.expires_at.value | date: '%s' | plus: 0
 assign cn='now' | date: '%s' | plus: 0
-assign cp=app.metafields.billing.plan_tier.value | default: 'free'
+assign cpt=app.metafields.billing.plan_tier.value | default: 'free'
 assign ca=false
 if cb == true or cb == 'true'
 if ce > cn
@@ -12,199 +12,198 @@ assign ca=true
 endif
 endif
 -%}
-{%- if ca -%}
+{%- if ca and cpt == 'pro' -%}
+{%- assign s=block.settings -%}
 <link href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css" rel="stylesheet"/>
 {% liquid
-  if block.settings.selected_collection != blank
-    assign slider_collection = collections[block.settings.selected_collection]
-  else
-    assign slider_collection = collections.all
-  endif
-  assign collection = slider_collection.products
-  assign products_limit = block.settings.products_limit | default: 8
-  assign products_display_mode = block.settings.products_display_mode | default: 'all'
-  assign products_to_show = products_limit
-  if products_display_mode == 'all'
-    assign products_to_show = slider_collection.products_count | default: collection.size
-  endif
+if s.selected_collection != blank
+assign slider_collection = collections[s.selected_collection]
+else
+assign slider_collection = collections.all
+endif
+assign collection = slider_collection.products
+assign products_limit = s.products_limit | default: 8
+assign products_display_mode = s.products_display_mode | default: 'all'
+assign products_to_show = products_limit
+if products_display_mode == 'all'
+assign products_to_show = slider_collection.products_count | default: collection.size
+endif
 %}
 {% assign section_id = 'shv-carousel-' | append: section.id %}
 {% if collection.first.featured_image %}
-  {% assign first_image = collection.first.featured_image %}
-  {% assign image_width = first_image.width | times: 1.0 %}
-  {% assign image_height = first_image.height | times: 1.0 %}
-  {% assign auto_aspect_ratio = image_width | divided_by: image_height | round: 2 %}
-  {% if auto_aspect_ratio >= 1.7 and auto_aspect_ratio <= 1.8 %}
-    {% assign detected_ratio = '16/9' %}
-    {% assign detected_fit = 'cover' %}
-  {% elsif auto_aspect_ratio >= 1.3 and auto_aspect_ratio <= 1.4 %}
-    {% assign detected_ratio = '4/3' %}
-    {% assign detected_fit = 'cover' %}
-  {% elsif auto_aspect_ratio >= 1.4 and auto_aspect_ratio <= 1.6 %}
-    {% assign detected_ratio = '3/2' %}
-    {% assign detected_fit = 'cover' %}
-  {% elsif auto_aspect_ratio >= 0.9 and auto_aspect_ratio <= 1.1 %}
-    {% assign detected_ratio = '1/1' %}
-    {% assign detected_fit = 'cover' %}
-  {% elsif auto_aspect_ratio >= 0.55 and auto_aspect_ratio <= 0.58 %}
-    {% assign detected_ratio = '9/16' %}
-    {% assign detected_fit = 'contain' %}
-  {% elsif auto_aspect_ratio >= 0.74 and auto_aspect_ratio <= 0.76 %}
-    {% assign detected_ratio = '3/4' %}
-    {% assign detected_fit = 'contain' %}
-  {% else %}
-    {% assign width_rounded = image_width | round %}
-    {% assign height_rounded = image_height | round %}
-    {% assign detected_ratio = width_rounded | append: '/' | append: height_rounded %}
-    {% if auto_aspect_ratio < 0.8 %}
-      {% assign detected_fit = 'contain' %}
-    {% else %}
-      {% assign detected_fit = 'cover' %}
-    {% endif %}
-  {% endif %}
+{% assign first_image = collection.first.featured_image %}
+{% assign image_width = first_image.width | times: 1.0 %}
+{% assign image_height = first_image.height | times: 1.0 %}
+{% assign auto_aspect_ratio = image_width | divided_by: image_height | round: 2 %}
+{% if auto_aspect_ratio >= 1.7 and auto_aspect_ratio <= 1.8 %}
+{% assign detected_ratio = '16/9' %}
+{% assign detected_fit = 'cover' %}
+{% elsif auto_aspect_ratio >= 1.3 and auto_aspect_ratio <= 1.4 %}
+{% assign detected_ratio = '4/3' %}
+{% assign detected_fit = 'cover' %}
+{% elsif auto_aspect_ratio >= 1.4 and auto_aspect_ratio <= 1.6 %}
+{% assign detected_ratio = '3/2' %}
+{% assign detected_fit = 'cover' %}
+{% elsif auto_aspect_ratio >= 0.9 and auto_aspect_ratio <= 1.1 %}
+{% assign detected_ratio = '1/1' %}
+{% assign detected_fit = 'cover' %}
+{% elsif auto_aspect_ratio >= 0.55 and auto_aspect_ratio <= 0.58 %}
+{% assign detected_ratio = '9/16' %}
+{% assign detected_fit = 'contain' %}
+{% elsif auto_aspect_ratio >= 0.74 and auto_aspect_ratio <= 0.76 %}
+{% assign detected_ratio = '3/4' %}
+{% assign detected_fit = 'contain' %}
 {% else %}
-  {% assign detected_ratio = '16/9' %}
-  {% assign detected_fit = 'cover' %}
+{% assign width_rounded = image_width | round %}
+{% assign height_rounded = image_height | round %}
+{% assign detected_ratio = width_rounded | append: '/' | append: height_rounded %}
+{% if auto_aspect_ratio < 0.8 %}
+{% assign detected_fit = 'contain' %}
+{% else %}
+{% assign detected_fit = 'cover' %}
+{% endif %}
+{% endif %}
+{% else %}
+{% assign detected_ratio = '16/9' %}
+{% assign detected_fit = 'cover' %}
 {% endif %}
 {%- assign use_custom_colors = false -%}
-{%- if block.settings.color_scheme_mode == 'custom' -%}
-  {%- assign use_custom_colors = true -%}
+{%- if s.color_scheme_mode == 'custom' -%}
+{%- assign use_custom_colors = true -%}
 {%- endif -%}
-{%- assign gradient_start = block.settings.gradient_color_start | default: 'var(--shv-button)' -%}
-{%- assign gradient_end = block.settings.gradient_color_end | default: 'var(--shv-outline)' -%}
-{%- assign custom_text_color = block.settings.custom_text_color | default: '' -%}
-{%- assign custom_title_size = block.settings.custom_title_size | default: '' -%}
-{%- assign custom_subtitle_size = block.settings.custom_subtitle_size | default: '' -%}
-{%- assign custom_price_size = block.settings.custom_price_size | default: '' -%}
-{%- assign custom_button_size = block.settings.custom_button_size | default: '' -%}
+{%- assign gradient_start = s.gradient_color_start | default: 'var(--shv-button)' -%}
+{%- assign gradient_end = s.gradient_color_end | default: 'var(--shv-outline)' -%}
+{%- assign custom_text_color = s.custom_text_color | default: '' -%}
+{%- assign custom_title_size = s.custom_title_size | default: '' -%}
+{%- assign custom_subtitle_size = s.custom_subtitle_size | default: '' -%}
+{%- assign custom_price_size = s.custom_price_size | default: '' -%}
+{%- assign custom_button_size = s.custom_button_size | default: '' -%}
 {{ 'slider-12.css' | asset_url | stylesheet_tag }}
 <script src="{{ 'slider-12.js' | asset_url }}" defer></script>
 <div
-  class="shv-slider-wrapper gradient{% if block.settings.enable_gradient_background %} shv-gradient-enabled shv-gradient-{{ block.settings.gradient_shape }}{% endif %}{% if block.settings.text_color != blank %} has-slider-text-color{% endif %}{% if block.settings.text_font_size != blank %} has-slider-text-size{% endif %}{% if block.settings.button_color != blank %} has-slider-button-color{% endif %}{% if block.settings.button_text_color != blank %} has-slider-button-text-color{% endif %}{% if block.settings.button_font_size != blank %} has-slider-button-size{% endif %}"
-  id="{{ section_id }}"
-  data-carousel-billing-gate
-  data-plan-tier="pro"
-  style="
-    --theme-accent: var(--shv-accent);
-    --theme-text: var(--shv-text);
-    --theme-bg: var(--shv-bg);
-    --theme-btn-bg: var(--shv-button);
-    --theme-btn-text: var(--shv-button-text);
-    --gradient-start: {{ gradient_start }};
-    --gradient-end: {{ gradient_end }};
-    --gradient-border-radius: {{ block.settings.gradient_border_radius }}px;
-    --shv-aspect-large: {% if block.settings.aspect_ratio_large == 'auto' or block.settings.aspect_ratio_large == blank %}{{ detected_ratio }}{% else %}{{ block.settings.aspect_ratio_large }}{% endif %};
-    --shv-fit-large: {% if block.settings.image_fit_large == 'auto' or block.settings.image_fit_large == blank %}{{ detected_fit }}{% else %}{{ block.settings.image_fit_large }}{% endif %};
-    --shv-aspect-medium: {% if block.settings.aspect_ratio_medium == 'auto' or block.settings.aspect_ratio_medium == blank %}{{ detected_ratio }}{% else %}{{ block.settings.aspect_ratio_medium }}{% endif %};
-    --shv-fit-medium: {% if block.settings.image_fit_medium == 'auto' or block.settings.image_fit_medium == blank %}{{ detected_fit }}{% else %}{{ block.settings.image_fit_medium }}{% endif %};
-    --shv-aspect-small: {% if block.settings.aspect_ratio_small == 'auto' or block.settings.aspect_ratio_small == blank %}{{ detected_ratio }}{% else %}{{ block.settings.aspect_ratio_small }}{% endif %};
-    --shv-fit-small: {% if block.settings.image_fit_small == 'auto' or block.settings.image_fit_small == blank %}{{ detected_fit }}{% else %}{{ block.settings.image_fit_small }}{% endif %};
-    {% if block.settings.text_color != blank %}
-      --slider-style-text-color: {{ block.settings.text_color }};
-    {% endif %}
-    {% if block.settings.text_font_size != blank %}
-      --slider-style-text-size: {{ block.settings.text_font_size }};
-    {% endif %}
-    {% if block.settings.button_color != blank %}
-      --slider-style-button-color: {{ block.settings.button_color }};
-    {% endif %}
-    {% if block.settings.button_text_color != blank %}
-      --slider-style-button-text-color: {{ block.settings.button_text_color }};
-    {% endif %}
-    {% if block.settings.button_font_size != blank %}
-      --slider-style-button-size: {{ block.settings.button_font_size }};
-    {% endif %}
-    {% if use_custom_colors and block.settings.custom_background_color != blank %}
-      --shv-bg-rgb: {{ block.settings.custom_background_color.red }}, {{ block.settings.custom_background_color.green }}, {{ block.settings.custom_background_color.blue }};
-      --shv-bg: {{ block.settings.custom_background_color }};
-    {% endif %}
-    {% if use_custom_colors and block.settings.custom_button_color != blank %}
-      --shv-button-rgb: {{ block.settings.custom_button_color.red }}, {{ block.settings.custom_button_color.green }}, {{ block.settings.custom_button_color.blue }};
-      --shv-button: {{ block.settings.custom_button_color }};
-      --shv-accent: {{ block.settings.custom_button_color }};
-    {% endif %}
-    {% if use_custom_colors and block.settings.custom_button_text_color != blank %}
-      --shv-button-text-rgb: {{ block.settings.custom_button_text_color.red }}, {{ block.settings.custom_button_text_color.green }}, {{ block.settings.custom_button_text_color.blue }};
-      --shv-button-text: {{ block.settings.custom_button_text_color }};
-    {% endif %}
-    {% if use_custom_colors and block.settings.custom_outline_color != blank %}
-      --shv-outline-rgb: {{ block.settings.custom_outline_color.red }}, {{ block.settings.custom_outline_color.green }}, {{ block.settings.custom_outline_color.blue }};
-      --shv-outline: {{ block.settings.custom_outline_color }};
-    {% endif %}
-    {% if use_custom_colors and block.settings.custom_shadow_color != blank %}
-      --shv-shadow-rgb: {{ block.settings.custom_shadow_color.red }}, {{ block.settings.custom_shadow_color.green }}, {{ block.settings.custom_shadow_color.blue }};
-    {% endif %}
-    {% if use_custom_colors and block.settings.custom_error_color != blank %}
-      --shv-error-rgb: {{ block.settings.custom_error_color.red }}, {{ block.settings.custom_error_color.green }}, {{ block.settings.custom_error_color.blue }};
-      --shv-error: {{ block.settings.custom_error_color }};
-    {% endif %}
-    {% if use_custom_colors and block.settings.custom_background_gradient != blank %}
-      --shv-custom-background: {{ block.settings.custom_background_gradient }};
-    {% endif %}
-    {% if use_custom_colors and custom_text_color != blank %}
-      --custom-text-color: {{ custom_text_color }};
-      --shv-text-rgb: {{ custom_text_color.red }}, {{ custom_text_color.green }}, {{ custom_text_color.blue }};
-      --shv-text: {{ custom_text_color }};
-    {% endif %}
-    {% if custom_title_size != blank %}--custom-title-size: {{ custom_title_size }};{% endif %}
-    {% if custom_subtitle_size != blank %}--custom-subtitle-size: {{ custom_subtitle_size }};{% endif %}
-    {% if custom_price_size != blank %}--custom-price-size: {{ custom_price_size }};{% endif %}
-    {% if custom_button_size != blank %}--custom-button-size: {{ custom_button_size }};{% endif %}
-  "
+class="shv-slider-wrapper gradient{% if s.enable_gradient_background %} shv-gradient-enabled shv-gradient-{{ s.gradient_shape }}{% endif %}{% if s.text_color != blank %} has-slider-text-color{% endif %}{% if s.text_font_size != blank %} has-slider-text-size{% endif %}{% if s.button_color != blank %} has-slider-button-color{% endif %}{% if s.button_text_color != blank %} has-slider-button-text-color{% endif %}{% if s.button_font_size != blank %} has-slider-button-size{% endif %}"
+id="{{ section_id }}"
+data-carousel-billing-gate
+data-plan-tier="pro"
+style="
+--theme-accent: var(--shv-accent);
+--theme-text: var(--shv-text);
+--theme-bg: var(--shv-bg);
+--theme-btn-bg: var(--shv-button);
+--theme-btn-text: var(--shv-button-text);
+--gradient-start: {{ gradient_start }};
+--gradient-end: {{ gradient_end }};
+--gradient-border-radius: {{ s.gradient_border_radius }}px;
+--shv-aspect-large: {% if s.aspect_ratio_large == 'auto' or s.aspect_ratio_large == blank %}{{ detected_ratio }}{% else %}{{ s.aspect_ratio_large }}{% endif %};
+--shv-fit-large: {% if s.image_fit_large == 'auto' or s.image_fit_large == blank %}{{ detected_fit }}{% else %}{{ s.image_fit_large }}{% endif %};
+--shv-aspect-medium: {% if s.aspect_ratio_medium == 'auto' or s.aspect_ratio_medium == blank %}{{ detected_ratio }}{% else %}{{ s.aspect_ratio_medium }}{% endif %};
+--shv-fit-medium: {% if s.image_fit_medium == 'auto' or s.image_fit_medium == blank %}{{ detected_fit }}{% else %}{{ s.image_fit_medium }}{% endif %};
+--shv-aspect-small: {% if s.aspect_ratio_small == 'auto' or s.aspect_ratio_small == blank %}{{ detected_ratio }}{% else %}{{ s.aspect_ratio_small }}{% endif %};
+--shv-fit-small: {% if s.image_fit_small == 'auto' or s.image_fit_small == blank %}{{ detected_fit }}{% else %}{{ s.image_fit_small }}{% endif %};
+{% if s.text_color != blank %}
+--slider-style-text-color: {{ s.text_color }};
+{% endif %}
+{% if s.text_font_size != blank %}
+--slider-style-text-size: {{ s.text_font_size }};
+{% endif %}
+{% if s.button_color != blank %}
+--slider-style-button-color: {{ s.button_color }};
+{% endif %}
+{% if s.button_text_color != blank %}
+--slider-style-button-text-color: {{ s.button_text_color }};
+{% endif %}
+{% if s.button_font_size != blank %}
+--slider-style-button-size: {{ s.button_font_size }};
+{% endif %}
+{% if use_custom_colors and s.custom_background_color != blank %}
+--shv-bg-rgb: {{ s.custom_background_color.red }}, {{ s.custom_background_color.green }}, {{ s.custom_background_color.blue }};
+--shv-bg: {{ s.custom_background_color }};
+{% endif %}
+{% if use_custom_colors and s.custom_button_color != blank %}
+--shv-button-rgb: {{ s.custom_button_color.red }}, {{ s.custom_button_color.green }}, {{ s.custom_button_color.blue }};
+--shv-button: {{ s.custom_button_color }};
+--shv-accent: {{ s.custom_button_color }};
+{% endif %}
+{% if use_custom_colors and s.custom_button_text_color != blank %}
+--shv-button-text-rgb: {{ s.custom_button_text_color.red }}, {{ s.custom_button_text_color.green }}, {{ s.custom_button_text_color.blue }};
+--shv-button-text: {{ s.custom_button_text_color }};
+{% endif %}
+{% if use_custom_colors and s.custom_outline_color != blank %}
+--shv-outline-rgb: {{ s.custom_outline_color.red }}, {{ s.custom_outline_color.green }}, {{ s.custom_outline_color.blue }};
+--shv-outline: {{ s.custom_outline_color }};
+{% endif %}
+{% if use_custom_colors and s.custom_shadow_color != blank %}
+--shv-shadow-rgb: {{ s.custom_shadow_color.red }}, {{ s.custom_shadow_color.green }}, {{ s.custom_shadow_color.blue }};
+{% endif %}
+{% if use_custom_colors and s.custom_error_color != blank %}
+--shv-error-rgb: {{ s.custom_error_color.red }}, {{ s.custom_error_color.green }}, {{ s.custom_error_color.blue }};
+--shv-error: {{ s.custom_error_color }};
+{% endif %}
+{% if use_custom_colors and s.custom_background_gradient != blank %}
+--shv-custom-background: {{ s.custom_background_gradient }};
+{% endif %}
+{% if use_custom_colors and custom_text_color != blank %}
+--custom-text-color: {{ custom_text_color }};
+--shv-text-rgb: {{ custom_text_color.red }}, {{ custom_text_color.green }}, {{ custom_text_color.blue }};
+--shv-text: {{ custom_text_color }};
+{% endif %}
+{% if custom_title_size != blank %}--custom-title-size: {{ custom_title_size }};{% endif %}
+{% if custom_subtitle_size != blank %}--custom-subtitle-size: {{ custom_subtitle_size }};{% endif %}
+{% if custom_price_size != blank %}--custom-price-size: {{ custom_price_size }};{% endif %}
+{% if custom_button_size != blank %}--custom-button-size: {{ custom_button_size }};{% endif %}
+"
 >
- <div class="shv-slider-track">
-   {% for product in collection limit: products_to_show %}
-     {% assign active_variant = product.selected_or_first_available_variant %}
-     <div class="shv-slide">
-          <img src="{{ product.featured_image.src | img_url: 'master' }}" alt="{{ product.featured_image.alt | escape }}" class="slider-img" width="{{ product.featured_image.width }}" height="{{ product.featured_image.height }}" loading="lazy">
-          <div class="shv-slide-content">
-                <div class="shv-slide-meta">
-                  <a href="{{ product.url }}">{{ product.title }}</a>
-                </div>
-                <div class="shv-slide-title">
-                  {% if active_variant %}
-                    {% if active_variant.compare_at_price > active_variant.price %}
-                      <span class="price-compare">{{ active_variant.compare_at_price | money_with_currency }}</span>
-                    {% endif %}
-                    <span class="price-span">{{ active_variant.price | money_with_currency }}</span>
-                  {% endif %}
-                </div>
-                <div class="buttons">
-                    <form action="{{ routes.cart_add_url }}" method="post" enctype="multipart/form-data" onsubmit="submitAddToCartForm_{{ section.id }}(this); return false;">
-                        <input type="hidden" name="id" value="{{ active_variant.id }}">
-                        <button type="submit" class="shv-add-to-cart-btn" aria-label="add to cart"{% unless active_variant.available %} disabled{% endunless %}>
-                          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M9 11a3 3 0 0 0 6 0" /><path d="M8 6.5a4 4 0 0 1 8 0" /><path d="M5 8h14v12a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V8z" />
-                          </svg>
-                          <p class="hide-on-mobile">{% if active_variant.available %}Add to Cart{% else %}Sold Out{% endif %}</p>
-                        </button>
-                    </form>
-                    <p class="shv-cart-feedback" data-shv-cart-feedback aria-live="polite"></p>
-                </div>
-        </div>
-     </div>
-     {% endfor %}
- </div>
- <div class="shv-slider-thumbs">
-   {% for product in collection limit: products_to_show %}
-     <div class="shv-slide">
-         <img src="{{ product.featured_image.src | img_url: 'large' }}" alt="{{ product.featured_image.alt | escape }}" class="thumbnail-img" width="540" height="720" loading="lazy">
-     </div>
-   {% endfor %}
- </div>
- <div class="shv-slider-nav">
-     <button class="shv-nav-prev" aria-label="Previous slide">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
-      </button>
-      <button class="shv-nav-next" aria-label="Next slide">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"></polyline></svg>
-      </button>
- </div>
- <div class="slider-progress"></div>
+<div class="shv-slider-track">
+{% for product in collection limit: products_to_show %}
+{% assign active_variant = product.selected_or_first_available_variant %}
+<div class="shv-slide">
+<img src="{{ product.featured_image.src | img_url: 'master' }}" alt="{{ product.featured_image.alt | escape }}" class="slider-img" width="{{ product.featured_image.width }}" height="{{ product.featured_image.height }}" loading="lazy">
+<div class="shv-slide-content">
+<div class="shv-slide-meta">
+<a href="{{ product.url }}">{{ product.title }}</a>
 </div>
-
+<div class="shv-slide-title">
+{% if active_variant %}
+{% if active_variant.compare_at_price > active_variant.price %}
+<span class="price-compare">{{ active_variant.compare_at_price | money_with_currency }}</span>
+{% endif %}
+<span class="price-span">{{ active_variant.price | money_with_currency }}</span>
+{% endif %}
+</div>
+<div class="buttons">
+<form action="{{ routes.cart_add_url }}" method="post" enctype="multipart/form-data" onsubmit="submitAddToCartForm_{{ section.id }}(this); return false;">
+<input type="hidden" name="id" value="{{ active_variant.id }}">
+<button type="submit" class="shv-add-to-cart-btn" aria-label="add to cart"{% unless active_variant.available %} disabled{% endunless %}>
+<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+<path d="M9 11a3 3 0 0 0 6 0" /><path d="M8 6.5a4 4 0 0 1 8 0" /><path d="M5 8h14v12a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V8z" />
+</svg>
+<p class="hide-on-mobile">{% if active_variant.available %}Add to Cart{% else %}Sold Out{% endif %}</p>
+</button>
+</form>
+<p class="shv-cart-feedback" data-shv-cart-feedback aria-live="polite"></p>
+</div>
+</div>
+</div>
+{% endfor %}
+</div>
+<div class="shv-slider-thumbs">
+{% for product in collection limit: products_to_show %}
+<div class="shv-slide">
+<img src="{{ product.featured_image.src | img_url: 'large' }}" alt="{{ product.featured_image.alt | escape }}" class="thumbnail-img" width="540" height="720" loading="lazy">
+</div>
+{% endfor %}
+</div>
+<div class="shv-slider-nav">
+<button class="shv-nav-prev" aria-label="Previous slide">
+<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+</button>
+<button class="shv-nav-next" aria-label="Next slide">
+<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"></polyline></svg>
+</button>
+</div>
+<div class="slider-progress"></div>
+</div>
 {%- endif -%}
-
 {% schema %}
 {"name":"Carousel: Modern","target":"section","settings":[{"type":"collection","id":"selected_collection","label":"Select Collection"},{"type":"select","id":"products_display_mode","label":"Products to show","options":[{"value":"all","label":"All products"},{"value":"limited","label":"Set number"}],"default":"all"},{"type":"range","id":"products_limit","label":"Number of products","min":2,"max":16,"step":1,"default":8},{"type":"header","content":"Large Screen (Desktop 1024px+)"},{"type":"select","id":"aspect_ratio_large","label":"Aspect Ratio (Large)","options":[{"value":"auto","label":"Auto (Detect)"},{"value":"16/9","label":"16:9"},{"value":"21/9","label":"21:9"},{"value":"4/3","label":"4:3"},{"value":"3/2","label":"3:2"},{"value":"1/1","label":"1:1"},{"value":"3/4","label":"3:4"},{"value":"9/16","label":"9:16"}],"default":"auto"},{"type":"select","id":"image_fit_large","label":"Image Fit (Large)","options":[{"value":"contain","label":"Contain"},{"value":"cover","label":"Cover"},{"value":"fill","label":"Fill"}],"default":"cover"},{"type":"header","content":"Medium Screen (Tablet 678-1023px)"},{"type":"select","id":"aspect_ratio_medium","label":"Aspect Ratio (Medium)","options":[{"value":"auto","label":"Auto (Detect)"},{"value":"16/9","label":"16:9"},{"value":"4/3","label":"4:3"},{"value":"3/2","label":"3:2"},{"value":"1/1","label":"1:1"},{"value":"3/4","label":"3:4"},{"value":"9/16","label":"9:16"}],"default":"auto"},{"type":"select","id":"image_fit_medium","label":"Image Fit (Medium)","options":[{"value":"contain","label":"Contain"},{"value":"cover","label":"Cover"},{"value":"fill","label":"Fill"}],"default":"cover"},{"type":"header","content":"Small Screen (Mobile \u003c678px)"},{"type":"select","id":"aspect_ratio_small","label":"Aspect Ratio (Small)","options":[{"value":"auto","label":"Auto (Detect)"},{"value":"9/16","label":"9:16"},{"value":"3/4","label":"3:4"},{"value":"1/1","label":"1:1"},{"value":"4/3","label":"4:3"},{"value":"16/9","label":"16:9"}],"default":"auto"},{"type":"select","id":"image_fit_small","label":"Image Fit (Small)","options":[{"value":"contain","label":"Contain"},{"value":"cover","label":"Cover"},{"value":"fill","label":"Fill"}],"default":"cover"},{"type":"header","content":"Color Settings"},{"type":"select","id":"color_scheme_mode","label":"Color scheme","options":[{"value":"inherit","label":"Inherit parent section"},{"value":"custom","label":"Use custom overrides"}],"default":"inherit"},{"type":"color","id":"custom_background_color","label":"Background color override"},{"type":"color_background","id":"custom_background_gradient","label":"Background gradient override"},{"type":"color","id":"custom_text_color","label":"Text color override"},{"type":"color","id":"custom_button_color","label":"Primary button/accent override"},{"type":"color","id":"custom_button_text_color","label":"Primary button text override"},{"type":"color","id":"custom_outline_color","label":"Secondary accent override"},{"type":"color","id":"custom_shadow_color","label":"Shadow color override"},{"type":"color","id":"custom_error_color","label":"Error message color override"},{"type":"header","content":"Typography"},{"type":"text","id":"custom_title_size","label":"Title Size (e.g. 3rem)"},{"type":"text","id":"custom_subtitle_size","label":"Product Name Size (e.g. 1.5rem)"},{"type":"text","id":"custom_price_size","label":"Price Size (e.g. 2rem)"},{"type":"text","id":"custom_button_size","label":"Button Size (e.g. 1.25rem)"},{"type":"color","id":"text_color","label":"Text color"},{"type":"text","id":"text_font_size","label":"Text font size","info":"Use a CSS size, for example 18px or 1.2rem."},{"type":"color","id":"button_color","label":"Button color"},{"type":"color","id":"button_text_color","label":"Button text color"},{"type":"text","id":"button_font_size","label":"Button font size","info":"Use a CSS size, for example 16px or 1rem."},{"type":"header","content":"Animated Accent Background"},{"type":"checkbox","id":"enable_gradient_background","label":"Enable animated text accents","default":true},{"type":"select","id":"gradient_shape","label":"Accent Shape","options":[{"value":"rectangle","label":"Rectangle"},{"value":"rounded","label":"Rounded"},{"value":"pill","label":"Pill"},{"value":"slashed","label":"Slashed"},{"value":"angled-left","label":"Angled Left"},{"value":"angled-right","label":"Angled Right"},{"value":"chevron-right","label":"Chevron Right"},{"value":"chevron-left","label":"Chevron Left"},{"value":"notch-right","label":"Notch Right"},{"value":"wave","label":"Wave"},{"value":"diagonal-cut","label":"Diagonal Cut"}],"default":"rounded"},{"type":"range","id":"gradient_border_radius","label":"Accent radius","min":0,"max":50,"step":1,"default":18,"unit":"px"},{"type":"color","id":"gradient_color_start","label":"Accent start color"},{"type":"color","id":"gradient_color_end","label":"Accent end color"}]}
 {% endschema %}
