@@ -38,7 +38,7 @@ export const BILLING_GRACE_DAYS = 0;
 export const SHOP_PLAN_API_VERSION =
   process.env.SHOPIFY_SHOP_PLAN_API_VERSION || "2025-04";
 
-const DEV_STORE_PLAN_NAMES = new Set(["affiliate", "development"]);
+const DEV_STORE_PLAN_NAMES = new Set(["affiliate", "development", "partner_test"]);
 
 // ---------------------------------------------------------------------------
 // Free-tier block mapping
