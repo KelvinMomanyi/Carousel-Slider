@@ -31,7 +31,7 @@ assign products_to_show = slider_collection.products_count | default: slider_col
 endif
 %}
 {% if slider_collection != blank and slider_collection.products_count > 0 %}
-<div id="{{ section_id }}" class="slider-07-root{% if s.text_color != blank %} has-slider-text-color{% endif %}{% if s.text_font_size != blank %} has-slider-text-size{% endif %}{% if s.button_color != blank %} has-slider-button-color{% endif %}{% if s.button_text_color != blank %} has-slider-button-text-color{% endif %}{% if s.button_font_size != blank %} has-slider-button-size{% endif %}" data-carousel-billing-gate data-plan-tier="pro" data-slider-07-root style="
+<div id="{{ section_id }}" class="slider-07-root{% if s.text_color != blank %} has-slider-text-color{% endif %}{% if s.text_font_size != blank %} has-slider-text-size{% endif %}{% if s.button_color != blank %} has-slider-button-color{% endif %}{% if s.button_text_color != blank %} has-slider-button-text-color{% endif %}{% if s.button_font_size != blank %} has-slider-button-size{% endif %}" {{ block.shopify_attributes }} data-carousel-billing-gate data-plan-tier="pro" data-slider-07-root style="
 --bg-color: {{ s.bg_color | default: '#0b0c10' }};
 --bg-image-opacity: {{ s.bg_image_opacity | divided_by: 100.0 | default: 1 }};
 --bg-image-blur: {{ s.bg_image_blur | default: 0 }}px;
@@ -90,7 +90,7 @@ data-available="{{ active_variant.available }}">
 </div>
 </div>
 {% else %}
-<div class="slider-liquid-empty">Select a collection with products to render this slider.</div>
+<div class="slider-liquid-empty" {{ block.shopify_attributes }}>Select a collection with products to render this slider.</div>
 {% endif %}
 {%- endif -%}
 {% schema %}

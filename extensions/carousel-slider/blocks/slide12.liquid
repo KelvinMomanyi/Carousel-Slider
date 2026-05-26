@@ -83,6 +83,7 @@ endif
 <div
 class="shv-slider-wrapper gradient{% if s.enable_gradient_background %} shv-gradient-enabled shv-gradient-{{ s.gradient_shape }}{% endif %}{% if s.text_color != blank %} has-slider-text-color{% endif %}{% if s.text_font_size != blank %} has-slider-text-size{% endif %}{% if s.button_color != blank %} has-slider-button-color{% endif %}{% if s.button_text_color != blank %} has-slider-button-text-color{% endif %}{% if s.button_font_size != blank %} has-slider-button-size{% endif %}"
 id="{{ section_id }}"
+{{ block.shopify_attributes }}
 data-carousel-billing-gate
 data-plan-tier="pro"
 style="

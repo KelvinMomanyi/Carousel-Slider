@@ -72,6 +72,7 @@ endif
 <script src="{{ 'slider-main.js' | asset_url }}" defer></script>
 <div class="shv-main-slider{% if s.enable_gradient_background %} shv-gradient-enabled shv-gradient-{{ s.gradient_shape }}{% endif %}"
 id="{{ section_id }}"
+{{ block.shopify_attributes }}
 data-shv-main-slider
 data-carousel-billing-gate
 data-plan-tier="free"
