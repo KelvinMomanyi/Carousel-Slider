@@ -1,20 +1,27 @@
-import { redirect } from "@remix-run/node";
+import { json, redirect } from "@remix-run/node";
 import { Form, useLoaderData } from "@remix-run/react";
 import { login } from "../../shopify.server";
+import { captureAffiliateReferral } from "../../utils/affiliate-referral.server";
 import styles from "./styles.module.css";
 
 export const loader = async ({ request }) => {
   const url = new URL(request.url);
+  const referral = await captureAffiliateReferral(request);
 
   if (url.searchParams.get("shop")) {
-    throw redirect(`/app?${url.searchParams.toString()}`);
+    throw redirect(`/app?${url.searchParams.toString()}`, {
+      headers: referral.headers,
+    });
   }
 
-  return { showForm: Boolean(login) };
+  return json(
+    { showForm: Boolean(login), affiliateCode: referral.affiliateCode },
+    { headers: referral.headers },
+  );
 };
 
 export default function App() {
-  const { showForm } = useLoaderData();
+  const { showForm, affiliateCode } = useLoaderData();
 
   return (
     <div className={styles.index}>
@@ -25,6 +32,9 @@ export default function App() {
         </p>
         {showForm && (
           <Form className={styles.form} method="post" action="/auth/login">
+            {affiliateCode && (
+              <input type="hidden" name="ref" value={affiliateCode} />
+            )}
             <label className={styles.label}>
               <span>Shop domain</span>
               <input className={styles.input} type="text" name="shop" />

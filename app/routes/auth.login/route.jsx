@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { json } from "@remix-run/node";
 import { Form, useActionData, useLoaderData } from "@remix-run/react";
 import {
   AppProvider as PolarisAppProvider,
@@ -12,22 +13,32 @@ import {
 import polarisTranslations from "@shopify/polaris/locales/en.json";
 import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
 import { login } from "../../shopify.server";
+import { captureAffiliateReferral } from "../../utils/affiliate-referral.server";
 import { loginErrorMessage } from "./error.server";
 
 export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
 
 export const loader = async ({ request }) => {
+  const referral = await captureAffiliateReferral(request);
   const errors = loginErrorMessage(await login(request));
 
-  return { errors, polarisTranslations };
+  return json(
+    { errors, polarisTranslations, affiliateCode: referral.affiliateCode },
+    { headers: referral.headers },
+  );
 };
 
 export const action = async ({ request }) => {
+  const referral = await captureAffiliateReferral(request);
   const errors = loginErrorMessage(await login(request));
 
-  return {
-    errors,
-  };
+  return json(
+    {
+      errors,
+      affiliateCode: referral.affiliateCode,
+    },
+    { headers: referral.headers },
+  );
 };
 
 export default function Auth() {
@@ -35,6 +46,7 @@ export default function Auth() {
   const actionData = useActionData();
   const [shop, setShop] = useState("");
   const { errors } = actionData || loaderData;
+  const affiliateCode = actionData?.affiliateCode || loaderData.affiliateCode;
 
   return (
     <PolarisAppProvider i18n={loaderData.polarisTranslations}>
@@ -42,6 +54,9 @@ export default function Auth() {
         <Card>
           <Form method="post">
             <FormLayout>
+              {affiliateCode && (
+                <input type="hidden" name="ref" value={affiliateCode} />
+              )}
               <Text variant="headingMd" as="h2">
                 Log in
               </Text>

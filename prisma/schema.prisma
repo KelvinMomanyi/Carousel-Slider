@@ -50,6 +50,23 @@ model Shop {
   updatedAt             DateTime  @updatedAt
 }
 
+model AffiliateReferral {
+  id            String    @id @default(uuid())
+  affiliateCode String
+  shop          String?   @unique
+  pendingShop   String?   @unique
+  status        String    @default("pending")
+  firstSeenAt   DateTime  @default(now())
+  lastSeenAt    DateTime  @default(now())
+  installedAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([affiliateCode])
+  @@index([status])
+  @@index([installedAt])
+}
+
 model CarouselEvent {
   id        String   @id @default(uuid())
   shop      String

@@ -13,6 +13,7 @@ import {
   BILLING_TRIAL_DAYS,
   recordShopInstall,
 } from "./utils/billing-state.server";
+import { recordAffiliateInstall } from "./utils/affiliate-referral.server";
 
 const scopes = Array.from(
   new Set(
@@ -47,6 +48,11 @@ const shopify = shopifyApp({
     afterAuth: async ({ session }) => {
       await shopify.registerWebhooks({ session });
       await recordShopInstall(session);
+      try {
+        await recordAffiliateInstall(session);
+      } catch (error) {
+        console.error("[Affiliate] Failed to finalize referral install:", error);
+      }
     },
   },
   webhooks: {
